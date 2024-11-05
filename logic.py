@@ -9,7 +9,7 @@ BLUE = "\033[34m"
 RESET = "\033[0m"
 
 
-class Game:
+class Game: #Not really sure if i'll be using a game class yet
     
     def __init__(self):
         pass
@@ -25,7 +25,33 @@ class Board:
         print("  A B C D E F G H")
 
     def setup(self):
-        pass
+        
+        for col in range(8):
+            self.grid[1][col] = Ape(color='red', initial_position=(1, col))
+            
+        self.grid[0][0] = Meerkat(color='red', initial_position=(0, 0))
+        self.grid[0][1] = Snake(color='red', initial_position=(0, 1))
+        self.grid[0][2] = Lynx(color='red', initial_position=(0, 2))
+        self.grid[0][3] = Meerkat(color='red', initial_position=(0, 3))
+        self.grid[0][4] = Crab(color='red', initial_position=(0, 4))
+        self.grid[0][5] = Lynx(color='red', initial_position=(0, 5))
+        self.grid[0][6] = Snake(color='red', initial_position=(0, 6))
+        self.grid[0][7] = Meerkat(color='red', initial_position=(0, 7))
+
+
+        
+        for col in range(8):
+            self.grid[6][col] = Ape(color='blue', initial_position=(6, col))
+        
+        self.grid[7][0] = Meerkat(color='blue', initial_position=(7, 0))
+        self.grid[7][1] = Snake(color='blue', initial_position=(7, 1))
+        self.grid[7][2] = Lynx(color='blue', initial_position=(7, 2))
+        self.grid[7][3] = Crab(color='blue', initial_position=(7, 3))
+        self.grid[7][4] = Meerkat(color='blue', initial_position=(7, 4))
+        self.grid[7][5] = Lynx(color='blue', initial_position=(7, 5))
+        self.grid[7][6] = Snake(color='blue', initial_position=(7, 6))
+        self.grid[7][7] = Meerkat(color='blue', initial_position=(7, 7))
+        
 
     def pos_is_empty(self,position)-> bool:
         if (self.grid[position[0]][position[1]]==None):
@@ -43,6 +69,20 @@ class Board:
     def place_piece(self,Piece,position):
         assert(self.pos_is_empty(position))
         self.grid[position[0]][position[1]]=Piece
+
+    def move_piece(self,Piece,position):
+        prev_pos = Piece.get_position()
+        if (self.pos_is_empty(position)):
+            self.grid[position[0]][position[1]]=Piece
+            self.grid[prev_pos[0]][prev_pos[1]]=None
+            Piece.move(position)
+
+        else:
+            opp_piece = self.get_piece_at_pos(position)
+            opp_piece.kill()
+            self.grid[position[0]][position[1]]=Piece
+            self.grid[prev_pos[0]][prev_pos[1]]=None
+            Piece.move(position)
 
     def get_piece_at_pos(self,position):
         return self.grid[position[0]][position[1]]
@@ -86,7 +126,7 @@ class Piece:
     def get_position(self):
         return self.__position
     
-    def move(self,new_position,board):
+    def move(self,new_position):
         self.__position = new_position
 
     def piece_type(self):
@@ -95,6 +135,12 @@ class Piece:
     def be_taken(self,board):
         board.grid[self.position] = (0,0)
 
+    def kill(self):
+        pass #TODO
+
+    @abstractmethod
+    def get_representation(self):
+        pass
     
     @abstractmethod
     def __str__(self) -> str:
@@ -102,7 +148,8 @@ class Piece:
 
 
 
-class Ape(Piece): ##TODO checck if actually cheks bounds
+class Ape(Piece): ##TODO check if actually cheks bounds
+    ##TODO recheck how i want them to work, now is only forward and not diagonally
     piece_type = "ape"
     def __init__(self, color, initial_position):
         super().__init__(color,initial_position)
@@ -125,6 +172,9 @@ class Ape(Piece): ##TODO checck if actually cheks bounds
                         moves.append(new_pos)
             
         return moves
+    
+    def get_representation(self):
+        return "A"
 
     def __str__(self) -> str:
         if (self.get_color()== 'red'):
@@ -133,7 +183,7 @@ class Ape(Piece): ##TODO checck if actually cheks bounds
             return(f"{BLUE} A {RESET}")
 
 
-class Snake(Piece):
+class Snake(Piece): #TODO does not work as expected with the "middle move"
     piece_type = "snake"
     def __init__(self, color, initial_position):
         super().__init__(color,initial_position)
@@ -163,7 +213,9 @@ class Snake(Piece):
                             r_path = False
         moves = set(moves)
         return moves
-        
+    
+    def get_representation(self):
+        return "S"
 
             
 
@@ -202,13 +254,16 @@ class Crab(Piece):
         return moves
             
 
+    def get_representation(self):
+        return "C"
+
     def __str__(self) -> str:
         if (self.get_color()== 'red'):
             return(f"{RED} C {RESET}")
         else:
             return(f"{BLUE} C {RESET}")
 
-class Meerkat(Piece):
+class Meerkat(Piece): #TODO can "jump" overpieces, should not work like that
     piece_type = "meerkat"
     def __init__(self, color, initial_position):
         super().__init__(color,initial_position)
@@ -223,6 +278,8 @@ class Meerkat(Piece):
                 
         return moves
             
+    def get_representation(self):
+        return "M"
 
     def __str__(self) -> str:
         if (self.get_color()== 'red'):
@@ -250,6 +307,8 @@ class Lynx(Piece):
             board.add_eligble_move(new_pos,moves,self.get_color())
         return moves
             
+    def get_representation(self):
+        return "L"
 
     def __str__(self) -> str:
         if (self.get_color()== 'red'):
