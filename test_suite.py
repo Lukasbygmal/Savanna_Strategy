@@ -29,12 +29,12 @@ class TestBoard(unittest.TestCase):
 class TestApe(unittest.TestCase):
     def setUp(self):
         self.board = Board()
-        self.ape = Ape("red", (3, 3))
-        self.board.place_piece(self.ape, (3, 3))
+        self.ape = Ape("blue", (6, 5))
+        self.board.place_piece(self.ape, (6, 5))
 
     def test_ape_possible_moves(self):
         moves = self.ape.get_possible_moves(self.ape.get_position(), self.board)
-        expected_moves = [(4, 3), (5, 3)]
+        expected_moves = [(5, 5), (5, 4), (4, 5), (5, 6)]
         self.assertEqual(sorted(moves), sorted(expected_moves))
 
 class TestSnake(unittest.TestCase):
@@ -49,6 +49,13 @@ class TestSnake(unittest.TestCase):
                           (7, 5), (7, 3), (1, 5), (1, 3), (5, 7), (3, 7), (5, 1), (3, 1),
                           (4, 0), (0, 4)]
         self.assertEqual(sorted(moves), sorted(expected_moves))
+
+    def test_snake_corner_possible_moves(self):
+        self.board.move_piece(self.snake,(7,7))
+        moves = self.snake.get_possible_moves(self.snake.get_position(), self.board)
+        expected_moves = [(6, 6), (7, 5), (6, 4), (7, 3), (6, 2), (5, 7), (4, 6), (3, 7), (2, 6)]
+        self.assertEqual(sorted(moves),sorted(expected_moves)) 
+
 
 class TestCrab(unittest.TestCase):
     def setUp(self):

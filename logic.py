@@ -18,12 +18,6 @@ class Board:
     def __init__(self):
         self.grid = [[None for _ in range(8)] for _ in range(8)]
 
-    def display(self):
-        print("  A B C D E F G H")
-        for i, row in enumerate(self.grid):
-            print(f"{8 - i} " + " ".join(row) + f" {8 - i}")
-        print("  A B C D E F G H")
-
     def setup(self):
         
         for col in range(8):
@@ -88,21 +82,21 @@ class Board:
         return self.grid[position[0]][position[1]]
 
     def pos_inside_board(self,position)-> bool:
-        return 0 <= position[0] < 8 and 0 <= position[1] < 8
+        return (0 <= position[0] < 8) and (0 <= position[1] < 8)
     
-    def add_eligble_move(self,new_pos,moves,own_color) ->bool:
-        result = False
+    def add_eligble_move(self,new_pos,moves,own_color):
+        """Returns: None if place is not eligeble, True if place is empty, False if place is opponent piece"""
         if (self.pos_inside_board(new_pos)):
                 if (self.pos_is_empty(new_pos)):
                     moves.append(new_pos)
-                    result = True
+                    return True
 
                 else:
                     piece = self.get_piece_at_pos(new_pos)
                     if(piece.get_color() != own_color):
                         moves.append(new_pos)
-                        result = True
-        return result
+                        return False
+        return None
         
 
 
@@ -148,8 +142,7 @@ class Piece:
 
 
 
-class Ape(Piece): ##TODO check if actually cheks bounds
-    ##TODO recheck how i want them to work, now is only forward and not diagonally
+class Ape(Piece): 
     piece_type = "ape"
     def __init__(self, color, initial_position):
         super().__init__(color,initial_position)
@@ -157,19 +150,27 @@ class Ape(Piece): ##TODO check if actually cheks bounds
     def get_possible_moves(self,position, board)->list:
         moves = []
         direction = 1
-        if (self.get_color()=='blue'):
+        color = self.get_color()
+        steps = 1
+
+        if (color =='blue'):
             direction = -1
-        for i in range(1,3):
-            new_pos = (position[0]+direction*i,position[1])
-            if (board.pos_inside_board(new_pos)):
-                if (board.pos_is_empty):
-                    moves.append(new_pos)
+        
+        if (position[0] == 6 and color == "blue" ) or (position[0]==1 and color == "red" ): #something weird with positition
+            steps = 2
+
+        for i in range(1, steps + 1):
+            mid_pos = (position[0]+direction*i,position[1])
+            if (board.pos_inside_board(mid_pos)):
+                if (board.pos_is_empty(mid_pos)):
+                    moves.append(mid_pos)
                 else:
-                    piece = board.get_piece_at_pos(new_pos)
-                    if(piece.color == self.get_color() or piece.piece_type == "ape"):
-                        ()
-                    else:
-                        moves.append(new_pos)
+                    break
+        
+        r_pos = (position[0]+direction,position[1] - 1)
+        board.add_eligble_move(r_pos,moves,self.get_color())
+        l_pos = (position[0]+direction,position[1] + 1)
+        board.add_eligble_move(l_pos,moves,self.get_color())
             
         return moves
     
@@ -183,7 +184,7 @@ class Ape(Piece): ##TODO check if actually cheks bounds
             return(f"{BLUE} A {RESET}")
 
 
-class Snake(Piece): #TODO does not work as expected with the "middle move"
+class Snake(Piece): #TODO does not work when at (7,a), also can go through opponent pieces
     piece_type = "snake"
     def __init__(self, color, initial_position):
         super().__init__(color,initial_position)
@@ -195,22 +196,24 @@ class Snake(Piece): #TODO does not work as expected with the "middle move"
             l_path = True
             r_path = True
             for x in range (1,6):
+                if not l_path and not r_path:
+                    break
                 if (x%2 == 0):
                     new_pos = (position[0] + d[0]*x,position[1]+ d[1]*x)
-                    if (board.add_eligble_move(new_pos,moves,self.get_color())==False):
+                    if (board.add_eligble_move(new_pos,moves,self.get_color())!=True):
                         break
 
                 else:
                     
                     if l_path:
                         l_pos = (position[0] + x * d[0] + d[1], position[1] + x * d[1] + d[0])
-                        if (board.add_eligble_move(l_pos,moves,self.get_color())==False):
+                        
+                        if (board.add_eligble_move(l_pos,moves,self.get_color())!=True):
                             l_path = False
-                
-                    if r_path:
+                    if r_path: 
                         r_pos = (position[0] + x * d[0] - d[1], position[1] + x * d[1] - d[0])
-                        if (board.add_eligble_move(r_pos,moves,self.get_color())==False):
-                            r_path = False
+                        if (board.add_eligble_move(r_pos,moves,self.get_color())!=True):
+                            r_path = False  
         moves = set(moves)
         return moves
     
@@ -263,7 +266,7 @@ class Crab(Piece):
         else:
             return(f"{BLUE} C {RESET}")
 
-class Meerkat(Piece): #TODO can "jump" overpieces, should not work like that
+class Meerkat(Piece): 
     piece_type = "meerkat"
     def __init__(self, color, initial_position):
         super().__init__(color,initial_position)
@@ -298,7 +301,8 @@ class Lynx(Piece):
         for d in directions:
             for i in range(1,8):
                 new_pos = (position[0] + d[0]*i,position[1] + d[1]*i)
-                board.add_eligble_move(new_pos,moves,self.get_color())
+                if (board.add_eligble_move(new_pos,moves,self.get_color())!=True):
+                    break
 
         directions = [(1,0),(0,1),(-1,0),(0,-1)]
         for d in directions:
