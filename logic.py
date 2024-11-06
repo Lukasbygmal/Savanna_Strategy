@@ -9,10 +9,29 @@ BLUE = "\033[34m"
 RESET = "\033[0m"
 
 
-class Game: #Not really sure if i'll be using a game class yet
-    
+class Player:
+    def __init__(self, color: Color):
+        self.color = color
+
+    def get_color(self):
+        return self.color
+
+
+class Game:
     def __init__(self):
-        pass
+        self.board = Board()
+        self.players = [ Player("blue"),Player("red")]
+        self.current_turn = 0  # 0 for blue, 1 for red
+        self.board.setup()
+
+    def get_current_player(self):
+        return self.players[self.current_turn]
+
+    def switch_turn(self):
+        self.current_turn = 1 - self.current_turn
+
+    def is_current_player_piece(self, piece):
+        return piece.get_color() == self.get_current_player().get_color()
 
 class Board:
     def __init__(self):

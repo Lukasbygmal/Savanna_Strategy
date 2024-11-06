@@ -50,16 +50,14 @@ def draw_possible_moves(possible_moves):
         pygame.draw.rect(screen, HIGHLIGHT, (move[1] * TILE_SIZE, move[0] * TILE_SIZE, TILE_SIZE, TILE_SIZE))
 
 def main():
-    board = Board()
-    board.setup()
+    game = Game()
     selected_piece = None
-    selected_position = None
     possible_moves = []
 
     running = True
     while running:
         draw_board() #maybe doesn't need to be in loop?
-        draw_pieces(board)
+        draw_pieces(game.board)
         
         if possible_moves:
             draw_possible_moves(possible_moves)
@@ -76,16 +74,16 @@ def main():
                 
                 if selected_piece:
                     if position in possible_moves:
-                        board.move_piece(selected_piece, position)
+                        game.board.move_piece(selected_piece, position)
+                        game.switch_turn()
                     selected_piece = None
                     possible_moves = []
                 
                 else:
-                    piece = board.get_piece_at_pos(position)
-                    if piece:
+                    piece = game.board.get_piece_at_pos(position)
+                    if piece and game.is_current_player_piece(piece):
                         selected_piece = piece
-                        selected_position = position
-                        possible_moves = piece.get_possible_moves(position, board)
+                        possible_moves = piece.get_possible_moves(position, game.board)
 
     pygame.quit()
 
