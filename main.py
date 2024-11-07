@@ -63,6 +63,8 @@ def main():
             draw_possible_moves(possible_moves)
         
         pygame.display.flip()
+        if game.winner:
+            break
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -75,6 +77,9 @@ def main():
                 if selected_piece:
                     if position in possible_moves:
                         game.board.move_piece(selected_piece, position)
+                        if game.winner:
+                            running = False
+                            break
                         game.switch_turn()
                     selected_piece = None
                     possible_moves = []

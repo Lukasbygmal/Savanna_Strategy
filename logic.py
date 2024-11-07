@@ -23,6 +23,7 @@ class Game:
         self.players = [ Player("blue"),Player("red")]
         self.current_turn = 0  # 0 for blue, 1 for red
         self.board.setup()
+        self.winner = None
 
     def get_current_player(self):
         return self.players[self.current_turn]
@@ -32,6 +33,12 @@ class Game:
 
     def is_current_player_piece(self, piece):
         return piece.get_color() == self.get_current_player().get_color()
+    
+    def check_victory(self, captured_piece):
+        """Check if the captured piece is the opponent's Tortoise and declare a winner."""
+        if isinstance(captured_piece, Tortoise):
+            self.winner = self.get_current_player().get_color()
+            print(f"{self.winner} wins by capturing the Tortoise!")
 
 class Board:
     def __init__(self):
@@ -45,7 +52,7 @@ class Board:
         self.grid[0][0] = Meerkat(color='red', initial_position=(0, 0))
         self.grid[0][1] = Snake(color='red', initial_position=(0, 1))
         self.grid[0][2] = Lynx(color='red', initial_position=(0, 2))
-        self.grid[0][3] = Meerkat(color='red', initial_position=(0, 3))
+        self.grid[0][3] = Tortoise(color='red', initial_position=(0, 3))
         self.grid[0][4] = Crab(color='red', initial_position=(0, 4))
         self.grid[0][5] = Lynx(color='red', initial_position=(0, 5))
         self.grid[0][6] = Snake(color='red', initial_position=(0, 6))
@@ -60,7 +67,7 @@ class Board:
         self.grid[7][1] = Snake(color='blue', initial_position=(7, 1))
         self.grid[7][2] = Lynx(color='blue', initial_position=(7, 2))
         self.grid[7][3] = Crab(color='blue', initial_position=(7, 3))
-        self.grid[7][4] = Meerkat(color='blue', initial_position=(7, 4))
+        self.grid[7][4] = Tortoise(color='blue', initial_position=(7, 4))
         self.grid[7][5] = Lynx(color='blue', initial_position=(7, 5))
         self.grid[7][6] = Snake(color='blue', initial_position=(7, 6))
         self.grid[7][7] = Meerkat(color='blue', initial_position=(7, 7))
@@ -80,22 +87,18 @@ class Board:
         return False
 
     def place_piece(self,Piece,position):
-        assert(self.pos_is_empty(position))
         self.grid[position[0]][position[1]]=Piece
+        Piece.move(position)
 
     def move_piece(self,Piece,position):
         prev_pos = Piece.get_position()
-        if (self.pos_is_empty(position)):
-            self.grid[position[0]][position[1]]=Piece
-            self.grid[prev_pos[0]][prev_pos[1]]=None
-            Piece.move(position)
-
-        else:
+        if (not self.pos_is_empty(position)):
             opp_piece = self.get_piece_at_pos(position)
-            opp_piece.kill()
-            self.grid[position[0]][position[1]]=Piece
-            self.grid[prev_pos[0]][prev_pos[1]]=None
-            Piece.move(position)
+            Game().check_victory(opp_piece)
+
+        self.grid[prev_pos[0]][prev_pos[1]]=None
+        self.place_piece(Piece,position)
+            
 
     def get_piece_at_pos(self,position):
         return self.grid[position[0]][position[1]]
@@ -147,9 +150,6 @@ class Piece:
     
     def be_taken(self,board):
         board.grid[self.position] = (0,0)
-
-    def kill(self):
-        pass #TODO
 
     @abstractmethod
     def get_representation(self):
@@ -308,6 +308,29 @@ class Meerkat(Piece):
             return(f"{RED} M {RESET}")
         else:
             return(f"{BLUE} M {RESET}")
+        
+class Tortoise(Piece): 
+    piece_type = "Tortoise"
+    def __init__(self, color, initial_position):
+        super().__init__(color,initial_position)
+    
+    def get_possible_moves(self,position, board):
+        moves = []
+        directions = [(1,0),(0,1),(-1,0),(0,-1),(1,1),(-1,1),(1,-1),(-1,-1)]
+        for d in directions:
+            new_pos = (position[0] + d[0], position[1] + d[1])
+            board.add_eligble_move(new_pos,moves,self.get_color())
+                
+        return moves
+            
+    def get_representation(self):
+        return "T"
+
+    def __str__(self) -> str:
+        if (self.get_color()== 'red'):
+            return(f"{RED} T {RESET}")
+        else:
+            return(f"{BLUE} T {RESET}")
 
 class Lynx(Piece):
     piece_type = "lynx"
