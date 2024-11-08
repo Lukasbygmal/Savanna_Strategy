@@ -96,8 +96,11 @@ class Board:
             opp_piece = self.get_piece_at_pos(position)
             Game().check_victory(opp_piece)
 
+        
         self.grid[prev_pos[0]][prev_pos[1]]=None
         self.place_piece(Piece,position)
+        if Piece.get_piece_type()=="ape":
+            Piece.evolve_if_eligable(position)
             
 
     def get_piece_at_pos(self,position):
@@ -145,7 +148,7 @@ class Piece:
     def move(self,new_position):
         self.__position = new_position
 
-    def piece_type(self):
+    def get_piece_type(self):
         return self.piece_type
     
     def be_taken(self,board):
@@ -163,6 +166,7 @@ class Piece:
 
 class Ape(Piece): 
     piece_type = "ape"
+    evolved = False
     def __init__(self, color, initial_position):
         super().__init__(color,initial_position)
 
@@ -175,26 +179,49 @@ class Ape(Piece):
         if (color =='blue'):
             direction = -1
         
-        if (position[0] == 6 and color == "blue" ) or (position[0]==1 and color == "red" ): #something weird with positition
-            steps = 2
+        if (not self.evolved):
 
-        for i in range(1, steps + 1):
-            mid_pos = (position[0]+direction*i,position[1])
-            if (board.pos_inside_board(mid_pos)):
-                if (board.pos_is_empty(mid_pos)):
-                    moves.append(mid_pos)
-                else:
-                    break
+
+            if (position[0] == 6 and color == "blue" ) or (position[0]==1 and color == "red" ): #something weird with positition
+                steps = 2
         
-        r_pos = (position[0]+direction,position[1] - 1)
-        board.add_eligble_move(r_pos,moves,self.get_color())
-        l_pos = (position[0]+direction,position[1] + 1)
-        board.add_eligble_move(l_pos,moves,self.get_color())
+            for i in range(1, steps + 1):
+                mid_pos = (position[0]+direction*i,position[1])
+                if (board.pos_inside_board(mid_pos)):
+                    if (board.pos_is_empty(mid_pos)):
+                        moves.append(mid_pos)
+                    else:
+                        break
+        
+            r_pos = (position[0]+direction,position[1] - 1)
+            board.add_eligble_move(r_pos,moves,self.get_color())
+            l_pos = (position[0]+direction,position[1] + 1)
+            board.add_eligble_move(l_pos,moves,self.get_color())
+
+        else:
+            directions = [(1,0),(0,1),(-1,0),(0,-1)]
+            for d in directions:
+                for i in range(1,8):
+
+                    new_pos = (position[0]+ d[0]*i,position[1]+ d[1]*i)
+                    if (board.add_eligble_move(new_pos,moves,color)!=True):
+                        break
             
         return moves
     
+    def evolve(self):
+        self.evolved = True
+
+    def evolve_if_eligable(self,position):
+        if (position[0] == 0 and self.get_color() == "blue" ) or (position[0]==7 and self.get_color() == "red" ):
+            self.evolve()
+            
     def get_representation(self):
-        return "A"
+        if not self.evolved:
+            return "A"
+        else:
+            return "EA"
+
 
     def __str__(self) -> str:
         if (self.get_color()== 'red'):
