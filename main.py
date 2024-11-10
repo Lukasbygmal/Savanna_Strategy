@@ -9,6 +9,7 @@ HIGHLIGHT = (173, 216, 230)
 SCREEN_SIZE = 640
 TILE_COUNT = 8
 TILE_SIZE = SCREEN_SIZE // 8
+AI_PLAYER = "blue"
 
 PIECE_COLORS = {
     'red': RED,
@@ -65,7 +66,21 @@ def main():
         pygame.display.flip()
         if game.winner:
             break
+        
+        if game.get_current_player().get_color() == AI_PLAYER:
+            best_score, best_move = game.minimax(4, -float('inf'), float('inf'), True)
+            if best_move:
+                piece_to_move, move_position = best_move
+                print("Piece to move:", piece_to_move)
+                print("Move position:", move_position)
+                game.make_move(piece_to_move,move_position)
 
+            else:
+                # If no valid moves were found, you may need to handle this scenario
+                print("No valid moves available for AI player.")
+                running = False  # Optionally stop the game if no moves are possible
+
+            
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -76,11 +91,7 @@ def main():
                 
                 if selected_piece:
                     if position in possible_moves:
-                        game.board.move_piece(selected_piece, position)
-                        if game.winner:
-                            running = False
-                            break
-                        game.switch_turn()
+                        game.make_move(selected_piece,position)
                     selected_piece = None
                     possible_moves = []
                 

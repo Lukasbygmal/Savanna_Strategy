@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Literal
+import math
 
 
 Color = Literal['red', 'blue'] #blue down, red up
@@ -39,6 +40,102 @@ class Game:
         if isinstance(captured_piece, Tortoise):
             self.winner = self.get_current_player().get_color()
             print(f"{self.winner} wins by capturing the Tortoise!")
+
+
+    def make_move(self, piece, position):
+        """Move a piece to a new position and check for victory if any piece was captured."""
+        captured_piece = self.board.move_piece(piece, position)
+        
+        if captured_piece != None:
+            self.check_victory(captured_piece)
+        
+        if self.winner:
+            return True  
+
+        self.switch_turn()
+        return False  
+
+    def evaluate_board(self) -> int:
+        """A heuristic function to evaluate the board position."""
+        score = 0
+        for row in range(8):
+            for col in range(8):
+                piece = self.board.get_piece_at_pos((row, col))
+                if piece:
+                    piece_score = self.get_value_of_piece(piece)
+                    if piece.get_color() == "blue":
+                        score += piece_score
+                    else:
+                        score -= piece_score
+        return score
+    
+    def get_value_of_piece(self, piece):
+        return piece.get_piece_value()
+    
+    #Known bugs - Ape can randomly evolve, Crab can teleport, Sometimes makes really weird moves 
+    def minimax(self, depth: int, alpha: int, beta: int, maximizing_player: bool):
+        if depth == 0 or self.winner:
+            return self.evaluate_board(), None
+
+        best_move = None
+        if maximizing_player:
+            max_eval = -math.inf
+            for piece, move in self.generate_moves("blue"):
+                old_pos = piece.get_position()
+                captured_piece = self.apply_move(piece, move)
+                eval, _ = self.minimax(depth - 1, alpha, beta, False)
+                self.undo_move(piece, old_pos, captured_piece)
+
+                if eval > max_eval:
+                    max_eval = eval
+                    best_move = (piece, move)
+
+                alpha = max(alpha, eval)
+                if beta <= alpha:
+                    break
+            return max_eval, best_move
+        else:
+            min_eval = math.inf
+            for piece, move in self.generate_moves("red"):
+                old_pos = piece.get_position()
+                captured_piece = self.apply_move(piece, move)
+                eval, _ = self.minimax(depth - 1, alpha, beta, True)
+                self.undo_move(piece, old_pos, captured_piece)
+
+                if eval < min_eval:
+                    min_eval = eval
+                    best_move = (piece, move)
+
+                beta = min(beta, eval)
+                if beta <= alpha:
+                    break
+            return min_eval, best_move
+        
+    def generate_moves(self, color: Color):
+        """Generates all possible moves for the current player color."""
+        moves = []
+        for row in range(8):
+            for col in range(8):
+                piece = self.board.get_piece_at_pos((row, col))
+                if piece and piece.get_color() == color:
+                    possible_moves = piece.get_possible_moves((row, col), self.board)
+                    for move in possible_moves:
+                        moves.append((piece, move))
+        return moves
+    
+    def apply_move(self, piece, new_position):
+        """Apply a move and return any captured piece."""
+        old_position = piece.get_position()#?
+        captured_piece = self.board.get_piece_at_pos(new_position)
+        self.board.move_piece(piece, new_position)
+        return captured_piece
+    
+    def undo_move(self, piece, new_position, captured_piece):
+        """Undo a move by placing the piece back and restoring any captured piece."""
+        old_position = piece.get_position()
+        self.board.move_piece(piece,new_position)
+        if captured_piece:
+            self.board.place_piece(captured_piece, old_position)
 
 class Board:
     def __init__(self):
@@ -86,21 +183,20 @@ class Board:
                 return True
         return False
 
-    def place_piece(self,Piece,position):
-        self.grid[position[0]][position[1]]=Piece
-        Piece.move(position)
+    def place_piece(self,piece,position):
+        self.grid[position[0]][position[1]]=piece
+        piece.move(position)
 
-    def move_piece(self,Piece,position):
-        prev_pos = Piece.get_position()
-        if (not self.pos_is_empty(position)):
-            opp_piece = self.get_piece_at_pos(position)
-            Game().check_victory(opp_piece)
+    def move_piece(self,piece,new_pos): 
+        prev_pos = piece.get_position()
+        captured_piece = self.get_piece_at_pos(new_pos)
 
-        
-        self.grid[prev_pos[0]][prev_pos[1]]=None
-        self.place_piece(Piece,position)
-        if Piece.get_piece_type()=="ape":
-            Piece.evolve_if_eligable(position)
+        self.grid[prev_pos[0]][prev_pos[1]] = None
+        self.place_piece(piece, new_pos)
+        if piece.get_piece_type()=="ape":
+            piece.evolve_if_eligable(new_pos)
+
+        return captured_piece
             
 
     def get_piece_at_pos(self,position):
@@ -128,6 +224,7 @@ class Board:
 
 class Piece:
     piece_type = None
+    piece_value = None
     def __init__(self,color: Color,position: tuple):
         self.__color = color
         self.__position = position
@@ -151,8 +248,11 @@ class Piece:
     def get_piece_type(self):
         return self.piece_type
     
+    def get_piece_value(self):
+        return self.piece_value
+    
     def be_taken(self,board):
-        board.grid[self.position] = (0,0)
+        board.grid[self.get_position()] = (0,0)
 
     @abstractmethod
     def get_representation(self):
@@ -166,6 +266,7 @@ class Piece:
 
 class Ape(Piece): 
     piece_type = "ape"
+    piece_value = 1
     evolved = False
     def __init__(self, color, initial_position):
         super().__init__(color,initial_position)
@@ -211,10 +312,12 @@ class Ape(Piece):
     
     def evolve(self):
         self.evolved = True
+        self.piece_value = 4
 
     def evolve_if_eligable(self,position):
-        if (position[0] == 0 and self.get_color() == "blue" ) or (position[0]==7 and self.get_color() == "red" ):
-            self.evolve()
+        if self.evolved== 0:
+            if (position[0] == 0 and self.get_color() == "blue" ) or (position[0]==7 and self.get_color() == "red" ):
+                self.evolve()
             
     def get_representation(self):
         if not self.evolved:
@@ -232,6 +335,7 @@ class Ape(Piece):
 
 class Snake(Piece): #TODO does not work when at (7,a), also can go through opponent pieces
     piece_type = "snake"
+    piece_value = 5
     def __init__(self, color, initial_position):
         super().__init__(color,initial_position)
     
@@ -277,6 +381,7 @@ class Snake(Piece): #TODO does not work when at (7,a), also can go through oppon
 
 class Crab(Piece):
     piece_type = "crab"
+    piece_value = 2
     def __init__(self, color, initial_position):
         super().__init__(color,initial_position)
     
@@ -314,6 +419,7 @@ class Crab(Piece):
 
 class Meerkat(Piece): 
     piece_type = "meerkat"
+    piece_value = 3
     def __init__(self, color, initial_position):
         super().__init__(color,initial_position)
     
@@ -338,6 +444,7 @@ class Meerkat(Piece):
         
 class Tortoise(Piece): 
     piece_type = "Tortoise"
+    piece_value = 100
     def __init__(self, color, initial_position):
         super().__init__(color,initial_position)
     
@@ -361,6 +468,7 @@ class Tortoise(Piece):
 
 class Lynx(Piece):
     piece_type = "lynx"
+    piece_value = 5
     def __init__(self, color, initial_position):
         super().__init__(color,initial_position)
     
