@@ -48,7 +48,7 @@ def draw_pieces(board):
 
 def draw_possible_moves(possible_moves):
     for move in possible_moves:
-        pygame.draw.rect(screen, HIGHLIGHT, (move[1] * TILE_SIZE, move[0] * TILE_SIZE, TILE_SIZE, TILE_SIZE))
+        pygame.draw.rect(screen, HIGHLIGHT, (move[2][1] * TILE_SIZE, move[2][0] * TILE_SIZE, TILE_SIZE, TILE_SIZE))
 
 def main():
     game = Game()
@@ -70,10 +70,10 @@ def main():
         if game.get_current_player().get_color() == AI_PLAYER:
             best_score, best_move = game.minimax(4, -float('inf'), float('inf'), True)
             if best_move:
-                piece_to_move, move_position = best_move
+                piece_to_move, move = best_move
                 print("Piece to move:", piece_to_move)
-                print("Move position:", move_position)
-                game.make_move(piece_to_move,move_position)
+                print("Move", move)
+                game.make_move(piece_to_move,move[2])
 
             else:
                 # If no valid moves were found, you may need to handle this scenario
@@ -90,7 +90,7 @@ def main():
                 position = get_board_position(x,y)
                 
                 if selected_piece:
-                    if position in possible_moves:
+                    if any(pos == position for _, _, pos in possible_moves):
                         game.make_move(selected_piece,position)
                     selected_piece = None
                     possible_moves = []

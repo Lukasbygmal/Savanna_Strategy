@@ -3,11 +3,43 @@ from typing import Literal
 import math
 
 
+# move(bool take, bool evolve, tuple(x,y)) note: not actually sure if it is xy or yx
+
 Color = Literal['red', 'blue'] #blue down, red up
 
 RED = "\033[31m" 
 BLUE = "\033[34m" 
 RESET = "\033[0m"
+
+class Position:
+    def __init__(self, x: int, y: int):
+        self.x = x
+        self.y = y
+    
+    def value(self):
+        return (self.x,self.y)
+    
+    def get_x(self):
+        return self.x
+    
+    def get_y(self):
+        return self.y
+    
+    def set_y(self,y):
+        self.y = y
+
+    def set_x(self,x):
+        self.x = x
+ 
+
+class Move:
+    def __init__(self, take: int, evolve: int, position: Position):
+        self.take = take
+        self.evolve = evolve
+        self.position = position
+
+    def value(self):
+        return (self.take, self.evolve, self.position.value())
 
 
 class Player:
@@ -82,9 +114,9 @@ class Game:
             max_eval = -math.inf
             for piece, move in self.generate_moves("blue"):
                 old_pos = piece.get_position()
-                captured_piece = self.apply_move(piece, move)
+                captured_piece = self.apply_move(piece, move[2])
                 eval, _ = self.minimax(depth - 1, alpha, beta, False)
-                self.undo_move(piece, old_pos, captured_piece)
+                self.undo_move(piece, old_pos, captured_piece, move[1])
 
                 if eval > max_eval:
                     max_eval = eval
@@ -98,9 +130,9 @@ class Game:
             min_eval = math.inf
             for piece, move in self.generate_moves("red"):
                 old_pos = piece.get_position()
-                captured_piece = self.apply_move(piece, move)
+                captured_piece = self.apply_move(piece, move[2])
                 eval, _ = self.minimax(depth - 1, alpha, beta, True)
-                self.undo_move(piece, old_pos, captured_piece)
+                self.undo_move(piece, old_pos, captured_piece, move[1])
 
                 if eval < min_eval:
                     min_eval = eval
@@ -123,16 +155,17 @@ class Game:
                         moves.append((piece, move))
         return moves
     
-    def apply_move(self, piece, new_position):
+    def apply_move(self, piece, position):
         """Apply a move and return any captured piece."""
-        old_position = piece.get_position()#?
-        captured_piece = self.board.get_piece_at_pos(new_position)
-        self.board.move_piece(piece, new_position)
+        captured_piece = self.board.get_piece_at_pos(position)
+        self.board.move_piece(piece, position)
         return captured_piece
     
-    def undo_move(self, piece, new_position, captured_piece):
+    def undo_move(self, piece, new_position, captured_piece, evolved):
         """Undo a move by placing the piece back and restoring any captured piece."""
         old_position = piece.get_position()
+        if(evolved):
+            piece.devolve()
         self.board.move_piece(piece,new_position)
         if captured_piece:
             self.board.place_piece(captured_piece, old_position)
@@ -193,8 +226,6 @@ class Board:
 
         self.grid[prev_pos[0]][prev_pos[1]] = None
         self.place_piece(piece, new_pos)
-        if piece.get_piece_type()=="ape":
-            piece.evolve_if_eligable(new_pos)
 
         return captured_piece
             
@@ -209,13 +240,30 @@ class Board:
         """Returns: None if place is not eligeble, True if place is empty, False if place is opponent piece"""
         if (self.pos_inside_board(new_pos)):
                 if (self.pos_is_empty(new_pos)):
-                    moves.append(new_pos)
+                    moves.append((0,0,new_pos))
                     return True
 
                 else:
                     piece = self.get_piece_at_pos(new_pos)
                     if(piece.get_color() != own_color):
-                        moves.append(new_pos)
+                        moves.append((1,0,new_pos))
+                        return False
+        return None
+    
+    def add_eligble_move_ape(self,ape,new_pos,moves,own_color):
+        if (self.pos_inside_board(new_pos)):
+                if (self.pos_is_empty(new_pos)):
+                    if(ape.will_evolve(new_pos)):
+                        moves.append((0,1,new_pos))
+                    moves.append((0,0,new_pos))
+                    return True
+
+                else:
+                    piece = self.get_piece_at_pos(new_pos)
+                    if(piece.get_color() != own_color):
+                        if(ape.will_evolve(new_pos)):
+                            moves.append((1,1,new_pos))
+                        moves.append((1,0,new_pos))
                         return False
         return None
         
@@ -287,17 +335,19 @@ class Ape(Piece):
                 steps = 2
         
             for i in range(1, steps + 1):
-                mid_pos = (position[0]+direction*i,position[1])
-                if (board.pos_inside_board(mid_pos)):
-                    if (board.pos_is_empty(mid_pos)):
-                        moves.append(mid_pos)
+                new_pos = (position[0]+direction*i,position[1])
+                if (board.pos_inside_board(new_pos)):
+                    if (board.pos_is_empty(new_pos)):
+                        if(self.will_evolve(new_pos)):
+                            moves.append((0,1,new_pos))
+                        moves.append((0,0,new_pos))
                     else:
                         break
         
             r_pos = (position[0]+direction,position[1] - 1)
-            board.add_eligble_move(r_pos,moves,self.get_color())
+            board.add_eligble_move_ape(self,r_pos,moves,self.get_color())
             l_pos = (position[0]+direction,position[1] + 1)
-            board.add_eligble_move(l_pos,moves,self.get_color())
+            board.add_eligble_move_ape(self,l_pos,moves,self.get_color())
 
         else:
             directions = [(1,0),(0,1),(-1,0),(0,-1)]
@@ -314,10 +364,16 @@ class Ape(Piece):
         self.evolved = True
         self.piece_value = 4
 
-    def evolve_if_eligable(self,position):
+    def devolve(self):
+        self.evolved = False
+        self.piece_value = 1
+
+    def will_evolve(self, position):
+        """If an ape will evolve at a certain position, returns True if evolved else False"""
         if self.evolved== 0:
             if (position[0] == 0 and self.get_color() == "blue" ) or (position[0]==7 and self.get_color() == "red" ):
-                self.evolve()
+                return True
+        return False
             
     def get_representation(self):
         if not self.evolved:
@@ -333,7 +389,7 @@ class Ape(Piece):
             return(f"{BLUE} A {RESET}")
 
 
-class Snake(Piece): #TODO does not work when at (7,a), also can go through opponent pieces
+class Snake(Piece):
     piece_type = "snake"
     piece_value = 5
     def __init__(self, color, initial_position):
