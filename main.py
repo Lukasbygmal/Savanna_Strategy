@@ -1,5 +1,5 @@
 import pygame
-from logic import Game, Board
+from logic import Game
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -71,14 +71,14 @@ def main():
             best_score, best_move = game.minimax(4, -float('inf'), float('inf'), True)
             if best_move:
                 piece_to_move, move = best_move
-                print("Piece to move:", piece_to_move)
+                print("-------Piece to move:", piece_to_move)
                 print("Move", move)
-                game.make_move(piece_to_move,move[2])
+                game.make_move(piece_to_move,move)
+                game.record_state()
 
             else:
-                # If no valid moves were found, you may need to handle this scenario
                 print("No valid moves available for AI player.")
-                running = False  # Optionally stop the game if no moves are possible
+                running = False  
 
             
         for event in pygame.event.get():
@@ -90,8 +90,13 @@ def main():
                 position = get_board_position(x,y)
                 
                 if selected_piece:
-                    if any(pos == position for _, _, pos in possible_moves):
-                        game.make_move(selected_piece,position)
+                    for move in possible_moves:
+                        if_capture, if_evolution, pos = move
+                        if pos == position:
+                            game.make_move(selected_piece, move)
+                            game.record_state()
+                            break 
+
                     selected_piece = None
                     possible_moves = []
                 
