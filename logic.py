@@ -100,18 +100,27 @@ class Game:
         self.switch_turn()
         return False  
 
-    def evaluate_board(self) -> int:
+    def evaluate_board(self) -> float:
         """A heuristic function to evaluate the board position."""
         score = 0
         for row in range(8):
             for col in range(8):
                 piece = self.board.get_piece_at_pos((row, col))
                 if piece:
+                    if isinstance(piece,Mandrill):
+                        if piece.get_color() == "blue":
+                            x = 8 - row
+                            score += x * 0.01
+                        else:
+                            x = row
+                            score -= x * 0.01
+                        
                     piece_score = self.get_value_of_piece(piece)
                     if piece.get_color() == "blue":
                         score += piece_score
                     else:
                         score -= piece_score
+        
         return score
     
     def get_value_of_piece(self, piece):
@@ -165,6 +174,7 @@ class Game:
                     possible_moves = piece.get_possible_moves((row, col), self.board)
                     for move in possible_moves:
                         moves.append((piece, move))
+        moves.sort(key=lambda move: (not move[1][0], not move[1][1], isinstance(move[0], Mandrill)))
         return moves
     
     def apply_move(self, piece, position, evolved):

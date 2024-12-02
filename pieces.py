@@ -161,15 +161,15 @@ class Python(Piece):
         return moves
     
     def get_representation(self):
-        return "S"
+        return "P"
 
             
 
     def __str__(self) -> str:
         if (self.get_color()== 'red'):
-            return(f"{RED} S {RESET}")
+            return(f"{RED} P {RESET}")
         else:
-            return(f"{BLUE} S {RESET}")
+            return(f"{BLUE} P {RESET}")
 
 
 class Giraffe(Piece):

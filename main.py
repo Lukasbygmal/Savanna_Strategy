@@ -1,5 +1,6 @@
 import pygame
 from logic import Game
+import time #remove eventually, for testing performance
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -79,7 +80,12 @@ def main():
         
         if game.get_current_player().get_color() == AI_PLAYER and not game.viewing_mode:
             game.step_to_front()
-            best_score, best_move = game.minimax(4, -float('inf'), float('inf'), True)
+            start_time = time.time()
+            best_score, best_move = game.minimax(5, -float('inf'), float('inf'), True)
+            end_time = time.time()
+            elapsed_time = end_time - start_time
+            print(f"Function runtime: {elapsed_time:.4f} seconds")
+
             if best_move:
                 piece_to_move, move = best_move
                 print("-------Piece to move:", piece_to_move)
