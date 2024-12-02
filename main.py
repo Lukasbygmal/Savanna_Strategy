@@ -67,14 +67,14 @@ def main():
         if game.winner:
             break
         
-        if game.get_current_player().get_color() == AI_PLAYER:
+        if game.get_current_player().get_color() == AI_PLAYER and not game.viewing_mode:
+            game.step_to_front()
             best_score, best_move = game.minimax(4, -float('inf'), float('inf'), True)
             if best_move:
                 piece_to_move, move = best_move
                 print("-------Piece to move:", piece_to_move)
                 print("Move", move)
                 game.make_move(piece_to_move,move)
-                game.record_state()
 
             else:
                 print("No valid moves available for AI player.")
@@ -85,7 +85,18 @@ def main():
             if event.type == pygame.QUIT:
                 running = False
             
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RIGHT:
+                    game.step_forward()
+                elif event.key == pygame.K_LEFT:
+                    game.step_back()
+                elif event.key == pygame.K_SPACE:
+                    game.step_to_front()
+            
             elif event.type == pygame.MOUSEBUTTONDOWN:
+                if game.viewing_mode:
+                    print("You cannot make moves while viewing previous states.")
+                    continue
                 x, y = pygame.mouse.get_pos()
                 position = get_board_position(x,y)
                 
@@ -94,7 +105,6 @@ def main():
                         if_capture, if_evolution, pos = move
                         if pos == position:
                             game.make_move(selected_piece, move)
-                            game.record_state()
                             break 
 
                     selected_piece = None

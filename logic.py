@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Literal
 import math
+from copy import deepcopy
 from pieces import Piece,Ape,Snake,Lynx,Tortoise,Crab,Meerkat
 
 
@@ -22,8 +23,11 @@ class Game:
         self.current_turn = 0  # 0 for blue, 1 for red
         self.board.setup()
         self.winner = None
-        self.history = [self.board_state().copy()]
-        self.moves_made = 0 
+        self.history = [deepcopy(self.board.get_board_state())]
+        self.moves_made = 0
+        self.board_index = 0
+        self.viewing_mode = False
+        
 
     def get_current_player(self):
         return self.players[self.current_turn]
@@ -31,6 +35,7 @@ class Game:
     def switch_turn(self):
         self.current_turn = 1 - self.current_turn
         self.moves_made += 1
+        self.board_index += 1
 
     def is_current_player_piece(self, piece):
         return piece.get_color() == self.get_current_player().get_color()
@@ -42,12 +47,47 @@ class Game:
             print(f"{self.winner} wins by capturing the Tortoise!")
     
     def record_state(self):
-        self.history.append(self.board_state().copy())
+
+        self.history.append(deepcopy(self.board.get_board_state()))
+
+
+    def step_back(self):
+        if self.board_index > 0:  
+            self.board_index -= 1
+            self.load_state(self.history[self.board_index])
+            self.viewing_mode = True 
+        else:
+            print("Already at the beginning of the history.") 
+        
+
+    def step_forward(self):
+        if self.board_index < self.moves_made:  
+            self.board_index += 1
+            self.load_state(self.history[self.board_index])
+
+            if self.board_index == self.moves_made:
+                self.viewing_mode = False
+        else:
+            print("Already at the most recent state.")
+
+    def step_to_front(self):
+        """Go to the latest state in the history."""
+        if self.board_index != self.moves_made:
+            self.board_index = self.moves_made
+            self.load_state(self.history[self.board_index])
+            self.viewing_mode = False
+
+    def load_state(self,state):
+        self.board.grid = [[deepcopy(cell) for cell in row] for row in state]
+        for row in range(8):
+            for col in range(8):
+                piece = self.board.grid[row][col]
+                if piece:
+                    piece.move((row, col))
 
 
     def make_move(self, piece, move):
         """Move a piece to a new position and check for victory if any piece was captured."""
-        self.history.append(self.board_state().copy())
         captured_piece = self.board.move_piece(piece, move[2],move[1])
         
         if captured_piece != None:
@@ -56,6 +96,7 @@ class Game:
         if self.winner:
             return True  
 
+        self.record_state()
         self.switch_turn()
         return False  
 
@@ -198,7 +239,7 @@ class Board:
         self.grid[position[0]][position[1]]=piece
         piece.move(position)
 
-    def move_piece(self,piece,new_pos, should_evolve): #the issue is that the fucking thing is called undo and forward 
+    def move_piece(self,piece,new_pos, should_evolve):
         prev_pos = piece.get_position()
         captured_piece = self.get_piece_at_pos(new_pos)
 
