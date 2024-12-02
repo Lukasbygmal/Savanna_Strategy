@@ -24,9 +24,13 @@ pygame.display.set_caption("Savanna")
 font = pygame.font.SysFont(None, 44)
 
 def get_board_position(x,y):
+    """Convert screen coordinates to board position for detecting clicks.
+    Returns: Tuple[int, int] - Row and column on the board."""
     return (y // TILE_SIZE, x // TILE_SIZE)
 
 def draw_board():
+    """Draw the checkered game board grid.
+    Returns: None."""
     screen.fill(WHITE)
     for row in range(TILE_COUNT):
         for col in range(TILE_COUNT):
@@ -34,12 +38,16 @@ def draw_board():
             pygame.draw.rect(screen, color, pygame.Rect(col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE))
 
 def draw_piece(piece, row, col):
+    """Render a piece at a specific board position.
+    Returns: None."""
     piece_color = PIECE_COLORS[piece.get_color()]
     text_surface = font.render(str(piece.get_representation()), True, piece_color)
     screen.blit(text_surface, (col * TILE_SIZE + TILE_SIZE // 3, row * TILE_SIZE + TILE_SIZE // 4))
 
 
 def draw_pieces(board):
+    """Draw all pieces on the board from its current state.
+    Returns: None."""
     for row in range(8):
         for col in range(8):
             piece = board.get_piece_at_pos((row, col))
@@ -47,6 +55,8 @@ def draw_pieces(board):
                 draw_piece(piece, row, col)
 
 def draw_possible_moves(possible_moves):
+    """Highlight tiles for valid moves of the selected piece.
+    Returns: None."""
     for move in possible_moves:
         pygame.draw.rect(screen, HIGHLIGHT, (move[2][1] * TILE_SIZE, move[2][0] * TILE_SIZE, TILE_SIZE, TILE_SIZE))
 

@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Literal
 import math
 from copy import deepcopy
-from pieces import Piece,Ape,Snake,Lynx,Tortoise,Crab,Meerkat
+from pieces import Piece,Mandrill,Python,Caracal,Tortoise,Giraffe,Meerkat
 
 
 Color = Literal['red', 'blue'] #blue down, red up
@@ -192,29 +192,29 @@ class Board:
     def setup(self):
         
         for col in range(8):
-            self.grid[1][col] = Ape(color='red', initial_position=(1, col))
+            self.grid[1][col] = Mandrill(color='red', initial_position=(1, col))
             
         self.grid[0][0] = Meerkat(color='red', initial_position=(0, 0))
-        self.grid[0][1] = Snake(color='red', initial_position=(0, 1))
-        self.grid[0][2] = Lynx(color='red', initial_position=(0, 2))
+        self.grid[0][1] = Python(color='red', initial_position=(0, 1))
+        self.grid[0][2] = Caracal(color='red', initial_position=(0, 2))
         self.grid[0][3] = Tortoise(color='red', initial_position=(0, 3))
-        self.grid[0][4] = Crab(color='red', initial_position=(0, 4))
-        self.grid[0][5] = Lynx(color='red', initial_position=(0, 5))
-        self.grid[0][6] = Snake(color='red', initial_position=(0, 6))
+        self.grid[0][4] = Giraffe(color='red', initial_position=(0, 4))
+        self.grid[0][5] = Caracal(color='red', initial_position=(0, 5))
+        self.grid[0][6] = Python(color='red', initial_position=(0, 6))
         self.grid[0][7] = Meerkat(color='red', initial_position=(0, 7))
 
 
         
         for col in range(8):
-            self.grid[6][col] = Ape(color='blue', initial_position=(6, col))
+            self.grid[6][col] = Mandrill(color='blue', initial_position=(6, col))
         
         self.grid[7][0] = Meerkat(color='blue', initial_position=(7, 0))
-        self.grid[7][1] = Snake(color='blue', initial_position=(7, 1))
-        self.grid[7][2] = Lynx(color='blue', initial_position=(7, 2))
-        self.grid[7][3] = Crab(color='blue', initial_position=(7, 3))
+        self.grid[7][1] = Python(color='blue', initial_position=(7, 1))
+        self.grid[7][2] = Caracal(color='blue', initial_position=(7, 2))
+        self.grid[7][3] = Giraffe(color='blue', initial_position=(7, 3))
         self.grid[7][4] = Tortoise(color='blue', initial_position=(7, 4))
-        self.grid[7][5] = Lynx(color='blue', initial_position=(7, 5))
-        self.grid[7][6] = Snake(color='blue', initial_position=(7, 6))
+        self.grid[7][5] = Caracal(color='blue', initial_position=(7, 5))
+        self.grid[7][6] = Python(color='blue', initial_position=(7, 6))
         self.grid[7][7] = Meerkat(color='blue', initial_position=(7, 7))
 
 
@@ -272,10 +272,10 @@ class Board:
                         return False
         return None
     
-    def add_eligble_move_ape(self,ape,new_pos,moves,own_color):
+    def add_eligble_move_mandrill(self,mandrill,new_pos,moves,own_color):
         if (self.pos_inside_board(new_pos)):
                 if (self.pos_is_empty(new_pos)):
-                    if(ape.will_evolve(new_pos)):
+                    if(mandrill.will_evolve(new_pos)):
                         moves.append((0,1,new_pos))
                     moves.append((0,0,new_pos))
                     return True
@@ -283,7 +283,7 @@ class Board:
                 else:
                     piece = self.get_piece_at_pos(new_pos)
                     if(piece.get_color() != own_color):
-                        if(ape.will_evolve(new_pos)):
+                        if(mandrill.will_evolve(new_pos)):
                             moves.append((1,1,new_pos))
                         moves.append((1,0,new_pos))
                         return False

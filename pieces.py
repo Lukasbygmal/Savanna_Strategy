@@ -49,8 +49,8 @@ class Piece:
         pass
 
 
-class Ape(Piece): 
-    piece_type = "ape"
+class Mandrill(Piece): 
+    piece_type = "mandrill"
     piece_value = 1
     evolved = False
     def __init__(self, color, initial_position):
@@ -82,9 +82,9 @@ class Ape(Piece):
                         break
         
             r_pos = (position[0]+direction,position[1] - 1)
-            board.add_eligble_move_ape(self,r_pos,moves,self.get_color())
+            board.add_eligble_move_mandrill(self,r_pos,moves,self.get_color())
             l_pos = (position[0]+direction,position[1] + 1)
-            board.add_eligble_move_ape(self,l_pos,moves,self.get_color())
+            board.add_eligble_move_mandrill(self,l_pos,moves,self.get_color())
 
         else:
             directions = [(1,0),(0,1),(-1,0),(0,-1)]
@@ -99,14 +99,14 @@ class Ape(Piece):
     
     def evolve(self):
         self.evolved = True
-        self.piece_value = 4
+        self.piece_value = 5
 
     def devolve(self):
         self.evolved = False
         self.piece_value = 1
 
     def will_evolve(self, position):
-        """If an ape will evolve at a certain position, returns True if evolved else False"""
+        """If an mandrill will evolve at a certain position, returns True if evolved else False"""
         if not self.evolved:
             if (position[0] == 0 and self.get_color() == "blue" ) or (position[0]==7 and self.get_color() == "red" ):
                 return True
@@ -114,20 +114,20 @@ class Ape(Piece):
             
     def get_representation(self):
         if not self.evolved:
-            return "A"
+            return "M"
         else:
-            return "EA"
+            return "B"
 
 
     def __str__(self) -> str:
         if (self.get_color()== 'red'):
-            return(f"{RED} A {RESET}")
+            return(f"{RED} M {RESET}")
         else:
-            return(f"{BLUE} A {RESET}")
+            return(f"{BLUE} M {RESET}")
 
 
-class Snake(Piece):
-    piece_type = "snake"
+class Python(Piece):
+    piece_type = "python"
     piece_value = 5
     def __init__(self, color, initial_position):
         super().__init__(color,initial_position)
@@ -172,9 +172,9 @@ class Snake(Piece):
             return(f"{BLUE} S {RESET}")
 
 
-class Crab(Piece):
-    piece_type = "crab"
-    piece_value = 2
+class Giraffe(Piece):
+    piece_type = "giraffe"
+    piece_value = 3
     def __init__(self, color, initial_position):
         super().__init__(color,initial_position)
     
@@ -198,13 +198,13 @@ class Crab(Piece):
             
 
     def get_representation(self):
-        return "C"
+        return "G"
 
     def __str__(self) -> str:
         if (self.get_color()== 'red'):
-            return(f"{RED} C {RESET}")
+            return(f"{RED} G {RESET}")
         else:
-            return(f"{BLUE} C {RESET}")
+            return(f"{BLUE} G {RESET}")
 
 class Meerkat(Piece): 
     piece_type = "meerkat"
@@ -216,7 +216,7 @@ class Meerkat(Piece):
         moves = []
         directions = [(1,0),(0,1),(-1,0),(0,-1)]
         for d in directions:
-            for i in range(1,3):
+            for i in range(1,4):
                 new_pos = (position[0] + i *d[0], position[1] + i *d[1])
                 board.add_eligble_move(new_pos,moves,self.get_color())
                 
@@ -255,9 +255,9 @@ class Tortoise(Piece):
         else:
             return(f"{BLUE} T {RESET}")
 
-class Lynx(Piece):
-    piece_type = "lynx"
-    piece_value = 5
+class Caracal(Piece):
+    piece_type = "caracal"
+    piece_value = 6
     def __init__(self, color, initial_position):
         super().__init__(color,initial_position)
     
@@ -278,10 +278,10 @@ class Lynx(Piece):
         return moves
             
     def get_representation(self):
-        return "L"
+        return "C"
 
     def __str__(self) -> str:
         if (self.get_color()== 'red'):
-            return(f"{RED} L {RESET}")
+            return(f"{RED} C {RESET}")
         else:
-            return(f"{BLUE} L {RESET}")
+            return(f"{BLUE} C {RESET}")
