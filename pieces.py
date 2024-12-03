@@ -40,6 +40,14 @@ class Piece:
     def be_taken(self,board):
         board.grid[self.get_position()] = (0,0)
 
+    def render(self, screen, tile_size):
+        """
+        Render the piece's sprite on the Pygame screen.
+        """
+        if self.sprite:
+            x, y = self.__position
+            screen.blit(self.sprite, (y * tile_size, x * tile_size))
+
     @abstractmethod
     def get_representation(self):
         pass
@@ -99,10 +107,12 @@ class Mandrill(Piece):
     
     def evolve(self):
         self.evolved = True
+        self.piece_type = "baboon"
         self.piece_value = 5
 
     def devolve(self):
         self.evolved = False
+        self.piece_type = "mandrill"
         self.piece_value = 1
 
     def will_evolve(self, position):
@@ -232,7 +242,7 @@ class Meerkat(Piece):
             return(f"{BLUE} M {RESET}")
         
 class Tortoise(Piece): 
-    piece_type = "Tortoise"
+    piece_type = "tortoise"
     piece_value = 100
     def __init__(self, color, initial_position):
         super().__init__(color,initial_position)

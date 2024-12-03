@@ -17,7 +17,8 @@ class Player:
 
 
 class Game:
-    def __init__(self):
+    def __init__(self,sprites):
+        self.sprites = sprites
         self.board = Board()
         self.players = [ Player("blue"),Player("red")]
         self.current_turn = 0  # 0 for blue, 1 for red

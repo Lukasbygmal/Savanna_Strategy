@@ -38,22 +38,54 @@ def draw_board():
             color = WHITE if (row + col) % 2 == 0 else BLACK
             pygame.draw.rect(screen, color, pygame.Rect(col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE))
 
-def draw_piece(piece, row, col):
-    """Render a piece at a specific board position.
-    Returns: None."""
-    piece_color = PIECE_COLORS[piece.get_color()]
-    text_surface = font.render(str(piece.get_representation()), True, piece_color)
-    screen.blit(text_surface, (col * TILE_SIZE + TILE_SIZE // 3, row * TILE_SIZE + TILE_SIZE // 4))
+def draw_piece(piece, row, col, sprites):
+    """Render a piece at a specific board position, perfectly centered in the tile."""
+    sprite = sprites[piece.piece_type]
+    sprite_width, sprite_height = sprite.get_size()
+
+    x_offset = (TILE_SIZE - sprite_width) // 2
+    y_offset = (TILE_SIZE - sprite_height) // 2
+
+    x_position = col * TILE_SIZE + x_offset
+    y_position = row * TILE_SIZE + y_offset
+
+    screen.blit(sprite, (x_position, y_position))
 
 
-def draw_pieces(board):
+def load_sprites(sprite_sheet_path):
+    """Load sprites for pieces from a sprite sheet and scale them."""
+    sprite_sheet = pygame.image.load(sprite_sheet_path).convert_alpha()
+    SPRITE_ROWS = 3  
+    SPRITE_COLUMNS = 3
+    sprite_width = sprite_sheet.get_width() // SPRITE_COLUMNS
+    sprite_height = sprite_sheet.get_height() // SPRITE_ROWS
+
+    scaled_size = (int(TILE_SIZE * 0.75), int(TILE_SIZE * 0.75)) 
+
+    sprites = {}
+    piece_names = ["giraffe", "tortoise", "python", "caracal", "meerkat","mandrill","baboon"]
+    index = 0
+    for row in range(SPRITE_ROWS):
+        for col in range(SPRITE_COLUMNS):
+            if index < len(piece_names):
+                sprite = sprite_sheet.subsurface(
+                    (col * sprite_width, row * sprite_height, sprite_width, sprite_height)
+                )
+                scaled_sprite = pygame.transform.scale(sprite, scaled_size)
+                sprites[piece_names[index]] = scaled_sprite
+                index += 1
+    return sprites
+
+
+
+def draw_pieces(board,sprites):
     """Draw all pieces on the board from its current state.
     Returns: None."""
     for row in range(8):
         for col in range(8):
             piece = board.get_piece_at_pos((row, col))
             if piece:
-                draw_piece(piece, row, col)
+                draw_piece(piece, row, col,sprites)
 
 def draw_possible_moves(possible_moves):
     """Highlight tiles for valid moves of the selected piece.
@@ -62,14 +94,15 @@ def draw_possible_moves(possible_moves):
         pygame.draw.rect(screen, HIGHLIGHT, (move[2][1] * TILE_SIZE, move[2][0] * TILE_SIZE, TILE_SIZE, TILE_SIZE))
 
 def main():
-    game = Game()
+    sprites = load_sprites("pieces.png")
+    game = Game(sprites)
     selected_piece = None
     possible_moves = []
 
     running = True
     while running:
         draw_board() #maybe doesn't need to be in loop?
-        draw_pieces(game.board)
+        draw_pieces(game.board,sprites)
         
         if possible_moves:
             draw_possible_moves(possible_moves)
@@ -81,7 +114,7 @@ def main():
         if game.get_current_player().get_color() == AI_PLAYER and not game.viewing_mode:
             game.step_to_front()
             start_time = time.time()
-            best_score, best_move = game.minimax(5, -float('inf'), float('inf'), True)
+            best_score, best_move = game.minimax(4, -float('inf'), float('inf'), True)
             end_time = time.time()
             elapsed_time = end_time - start_time
             print(f"Function runtime: {elapsed_time:.4f} seconds")
