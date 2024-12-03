@@ -5,7 +5,7 @@ from copy import deepcopy
 from pieces import Piece,Mandrill,Python,Caracal,Tortoise,Giraffe,Meerkat
 
 
-Color = Literal['red', 'blue'] #blue down, red up
+Color = Literal['white', 'black'] #black down, white up
 
 
 class Player:
@@ -13,6 +13,8 @@ class Player:
         self.color = color
 
     def get_color(self):
+        """Gets the player's color.
+        Returns: Color ('white' or 'black')."""
         return self.color
 
 
@@ -20,8 +22,8 @@ class Game:
     def __init__(self,sprites):
         self.sprites = sprites
         self.board = Board()
-        self.players = [ Player("blue"),Player("red")]
-        self.current_turn = 0  # 0 for blue, 1 for red
+        self.players = [ Player("black"),Player("white")]
+        self.current_turn = 0  # 0 for black, 1 for white
         self.board.setup()
         self.winner = None
         self.history = [deepcopy(self.board.get_board_state())]
@@ -31,28 +33,38 @@ class Game:
         
 
     def get_current_player(self):
+        """Gets the current player based on turn.
+        Returns: Player (the current Player object)."""
         return self.players[self.current_turn]
 
     def switch_turn(self):
+        """Switches the turn to the next player.
+        Returns: None."""
         self.current_turn = 1 - self.current_turn
         self.moves_made += 1
         self.board_index += 1
 
     def is_current_player_piece(self, piece):
+        """Checks if a piece belongs to the current player.
+        Returns: bool (True if it is the current player's piece, otherwise False)."""
         return piece.get_color() == self.get_current_player().get_color()
     
-    def check_victory(self, captured_piece):
-        """Check if the captured piece is the opponent's Tortoise and declare a winner."""
-        if isinstance(captured_piece, Tortoise):
+    def check_victory(self, captuwhite_piece):
+        """Checks if the captuwhite piece is the opponent's Tortoise and declares a winner.
+        Returns: None."""
+        if isinstance(captuwhite_piece, Tortoise):
             self.winner = self.get_current_player().get_color()
             print(f"{self.winner} wins by capturing the Tortoise!")
     
     def record_state(self):
-
+        """Saves the current board state into the game history.
+        Returns: None."""
         self.history.append(deepcopy(self.board.get_board_state()))
 
 
     def step_back(self):
+        """Steps back to the previous state in the game history.
+        Returns: None."""
         if self.board_index > 0:  
             self.board_index -= 1
             self.load_state(self.history[self.board_index])
@@ -62,6 +74,8 @@ class Game:
         
 
     def step_forward(self):
+        """Steps forward to the next state in the game history.
+        Returns: None."""
         if self.board_index < self.moves_made:  
             self.board_index += 1
             self.load_state(self.history[self.board_index])
@@ -72,13 +86,16 @@ class Game:
             print("Already at the most recent state.")
 
     def step_to_front(self):
-        """Go to the latest state in the history."""
+        """Steps to the most recent state in the game history.
+        Returns: None."""
         if self.board_index != self.moves_made:
             self.board_index = self.moves_made
             self.load_state(self.history[self.board_index])
             self.viewing_mode = False
 
     def load_state(self,state):
+        """Loads a given board state.
+        Returns: None."""
         self.board.grid = [[deepcopy(cell) for cell in row] for row in state]
         for row in range(8):
             for col in range(8):
@@ -88,11 +105,12 @@ class Game:
 
 
     def make_move(self, piece, move):
-        """Move a piece to a new position and check for victory if any piece was captured."""
-        captured_piece = self.board.move_piece(piece, move[2],move[1])
+        """Moves a piece to a new position, checks for victory, and updates the game state.
+        Returns: bool (True if the game ends after the move, otherwise False)."""
+        captuwhite_piece = self.board.move_piece(piece, move[2],move[1])
         
-        if captured_piece != None:
-            self.check_victory(captured_piece)
+        if captuwhite_piece != None:
+            self.check_victory(captuwhite_piece)
         
         if self.winner:
             return True  
@@ -102,14 +120,15 @@ class Game:
         return False  
 
     def evaluate_board(self) -> float:
-        """A heuristic function to evaluate the board position."""
+        """Evaluates the board state using a heuristic function.
+        Returns: float (the score of the board state)."""
         score = 0
         for row in range(8):
             for col in range(8):
                 piece = self.board.get_piece_at_pos((row, col))
                 if piece:
                     if isinstance(piece,Mandrill):
-                        if piece.get_color() == "blue":
+                        if piece.get_color() == "black":
                             x = 8 - row
                             score += x * 0.01
                         else:
@@ -117,7 +136,7 @@ class Game:
                             score -= x * 0.01
                         
                     piece_score = self.get_value_of_piece(piece)
-                    if piece.get_color() == "blue":
+                    if piece.get_color() == "black":
                         score += piece_score
                     else:
                         score -= piece_score
@@ -125,20 +144,24 @@ class Game:
         return score
     
     def get_value_of_piece(self, piece):
+        """Gets the value of a specific piece.
+        Returns: int (the piece's value)."""
         return piece.get_piece_value()
     
     def minimax(self, depth: int, alpha: int, beta: int, maximizing_player: bool):
+        """Uses the minimax algorithm with alpha-beta pruning to evaluate the best move.
+        Returns: Tuple[float, Tuple[Piece, Move]] (evaluation score and best move)."""
         if depth == 0 or self.winner:
             return self.evaluate_board(), None
 
         best_move = None
         if maximizing_player:
             max_eval = -math.inf
-            for piece, move in self.generate_moves("blue"):
+            for piece, move in self.generate_moves("black"):
                 old_pos = piece.get_position()
-                captured_piece = self.apply_move(piece, move[2], move[1])
+                captuwhite_piece = self.apply_move(piece, move[2], move[1])
                 eval, _ = self.minimax(depth - 1, alpha, beta, False)
-                self.undo_move(piece, old_pos, captured_piece, move[1])
+                self.undo_move(piece, old_pos, captuwhite_piece, move[1])
 
                 if eval > max_eval:
                     max_eval = eval
@@ -150,11 +173,11 @@ class Game:
             return max_eval, best_move
         else:
             min_eval = math.inf
-            for piece, move in self.generate_moves("red"):
+            for piece, move in self.generate_moves("white"):
                 old_pos = piece.get_position()
-                captured_piece = self.apply_move(piece, move[2], move[1])
+                captuwhite_piece = self.apply_move(piece, move[2], move[1])
                 eval, _ = self.minimax(depth - 1, alpha, beta, True)
-                self.undo_move(piece, old_pos, captured_piece, move[1])
+                self.undo_move(piece, old_pos, captuwhite_piece, move[1])
 
                 if eval < min_eval:
                     min_eval = eval
@@ -166,7 +189,8 @@ class Game:
             return min_eval, best_move
         
     def generate_moves(self, color: Color):
-        """Generates all possible moves for the current player color."""
+        """Generates all possible moves for a given color.
+        Returns: List[Tuple[Piece, Move]] (a list of pieces and their possible moves)."""
         moves = []
         for row in range(8):
             for col in range(8):
@@ -179,21 +203,25 @@ class Game:
         return moves
     
     def apply_move(self, piece, position, evolved):
-        """Apply a move and return any captured piece."""
-        captured_piece = self.board.get_piece_at_pos(position)
+        """Applies a move and returns any captuwhite piece.
+        Returns: Piece (the captuwhite piece, or None if no piece was captuwhite)."""
+        captuwhite_piece = self.board.get_piece_at_pos(position)
         self.board.move_piece(piece, position, evolved)
-        return captured_piece
+        return captuwhite_piece
     
-    def undo_move(self, piece, new_position, captured_piece, evolved):
-        """Undo a move by placing the piece back and restoring any captured piece."""
+    def undo_move(self, piece, new_position, captuwhite_piece, evolved):
+        """Reverts a move to restore the previous game state.
+        Returns: None."""
         old_position = piece.get_position()
         if evolved:
             piece.devolve()
         self.board.move_piece(piece,new_position,0)
-        if captured_piece:
-            self.board.place_piece(captured_piece, old_position)
+        if captuwhite_piece:
+            self.board.place_piece(captuwhite_piece, old_position)
 
     def board_state(self):
+        """Gets the current state of the board.
+        Returns: List[List[Optional[Piece]]] (the 2D grid representing the board)."""
         return self.board.get_board_state()
 
 class Board:
@@ -201,58 +229,60 @@ class Board:
         self.grid = [[None for _ in range(8)] for _ in range(8)]
 
     def setup(self):
-        
+        """Initializes the board with pieces in their starting positions.
+        Returns: None."""
         for col in range(8):
-            self.grid[1][col] = Mandrill(color='red', initial_position=(1, col))
+            self.grid[1][col] = Mandrill(color='white', initial_position=(1, col))
             
-        self.grid[0][0] = Meerkat(color='red', initial_position=(0, 0))
-        self.grid[0][1] = Python(color='red', initial_position=(0, 1))
-        self.grid[0][2] = Caracal(color='red', initial_position=(0, 2))
-        self.grid[0][3] = Tortoise(color='red', initial_position=(0, 3))
-        self.grid[0][4] = Giraffe(color='red', initial_position=(0, 4))
-        self.grid[0][5] = Caracal(color='red', initial_position=(0, 5))
-        self.grid[0][6] = Python(color='red', initial_position=(0, 6))
-        self.grid[0][7] = Meerkat(color='red', initial_position=(0, 7))
+        self.grid[0][0] = Meerkat(color='white', initial_position=(0, 0))
+        self.grid[0][1] = Python(color='white', initial_position=(0, 1))
+        self.grid[0][2] = Caracal(color='white', initial_position=(0, 2))
+        self.grid[0][3] = Tortoise(color='white', initial_position=(0, 3))
+        self.grid[0][4] = Giraffe(color='white', initial_position=(0, 4))
+        self.grid[0][5] = Caracal(color='white', initial_position=(0, 5))
+        self.grid[0][6] = Python(color='white', initial_position=(0, 6))
+        self.grid[0][7] = Meerkat(color='white', initial_position=(0, 7))
 
 
         
         for col in range(8):
-            self.grid[6][col] = Mandrill(color='blue', initial_position=(6, col))
+            self.grid[6][col] = Mandrill(color='black', initial_position=(6, col))
         
-        self.grid[7][0] = Meerkat(color='blue', initial_position=(7, 0))
-        self.grid[7][1] = Python(color='blue', initial_position=(7, 1))
-        self.grid[7][2] = Caracal(color='blue', initial_position=(7, 2))
-        self.grid[7][3] = Giraffe(color='blue', initial_position=(7, 3))
-        self.grid[7][4] = Tortoise(color='blue', initial_position=(7, 4))
-        self.grid[7][5] = Caracal(color='blue', initial_position=(7, 5))
-        self.grid[7][6] = Python(color='blue', initial_position=(7, 6))
-        self.grid[7][7] = Meerkat(color='blue', initial_position=(7, 7))
+        self.grid[7][0] = Meerkat(color='black', initial_position=(7, 0))
+        self.grid[7][1] = Python(color='black', initial_position=(7, 1))
+        self.grid[7][2] = Caracal(color='black', initial_position=(7, 2))
+        self.grid[7][3] = Giraffe(color='black', initial_position=(7, 3))
+        self.grid[7][4] = Tortoise(color='black', initial_position=(7, 4))
+        self.grid[7][5] = Caracal(color='black', initial_position=(7, 5))
+        self.grid[7][6] = Python(color='black', initial_position=(7, 6))
+        self.grid[7][7] = Meerkat(color='black', initial_position=(7, 7))
 
 
     def get_board_state(self):
+        """Gets the current state of the board.
+        Returns: List[List[Optional[Piece]]] (the 2D grid representing the board)."""
         return self.grid
         
 
     def pos_is_empty(self,position)-> bool:
+        """Checks if a given position on the board is empty.
+        Returns: bool (True if the position is empty, otherwise False)."""
         if (self.grid[position[0]][position[1]]==None):
             return True
         else:
             False
 
-    def place_has_piece_of_color(self,position,color)-> bool:
-        if (self.pos_is_empty(position)==False):
-            piece = self.get_piece_at_pos()
-            if(piece.get_color()==color):
-                return True
-        return False
-
     def place_piece(self,piece,position):
+        """Places a piece at the specified position.
+        Returns: None."""
         self.grid[position[0]][position[1]]=piece
         piece.move(position)
 
     def move_piece(self,piece,new_pos, should_evolve):
+        """Moves a piece to a new position, possibly evolving it.
+        Returns: Piece (the captuwhite piece, or None if no piece was captuwhite)."""
         prev_pos = piece.get_position()
-        captured_piece = self.get_piece_at_pos(new_pos)
+        captuwhite_piece = self.get_piece_at_pos(new_pos)
 
         if should_evolve:
             piece.evolve()
@@ -260,17 +290,22 @@ class Board:
         self.grid[prev_pos[0]][prev_pos[1]] = None
         self.place_piece(piece, new_pos)
 
-        return captured_piece
+        return captuwhite_piece
             
 
     def get_piece_at_pos(self,position):
+        """Gets the piece at a specific position on the board.
+        Returns: Piece (the piece at the position, or None if the position is empty)."""
         return self.grid[position[0]][position[1]]
 
     def pos_inside_board(self,position)-> bool:
+        """Checks if a position is within the board boundaries.
+        Returns: bool (True if the position is valid, otherwise False)."""
         return (0 <= position[0] < 8) and (0 <= position[1] < 8)
     
     def add_eligble_move(self,new_pos,moves,own_color):
-        """Returns: None if place is not eligeble, True if place is empty, False if place is opponent piece"""
+        """Adds a valid move for a piece if the target position is valid.
+        Returns: None if the move is invalid, True if the position is empty, False if it contains an opponent's piece."""
         if (self.pos_inside_board(new_pos)):
                 if (self.pos_is_empty(new_pos)):
                     moves.append((0,0,new_pos))
@@ -284,6 +319,8 @@ class Board:
         return None
     
     def add_eligble_move_mandrill(self,mandrill,new_pos,moves,own_color):
+        """Adds valid moves for a Mandrill piece, considering its ability to evolve.
+        Returns: None if the move is invalid, True if the position is empty, False if it contains an opponent's piece."""
         if (self.pos_inside_board(new_pos)):
                 if (self.pos_is_empty(new_pos)):
                     if(mandrill.will_evolve(new_pos)):

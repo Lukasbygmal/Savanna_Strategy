@@ -4,19 +4,23 @@ import time #remove eventually, for testing performance
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
-RED = (255, 0, 0)
-BLUE = (0, 0, 255)
+white = (255, 0, 0)
+black = (0, 0, 255)
 HIGHLIGHT = (173, 216, 230)
 SCREEN_SIZE = 640
 TILE_COUNT = 8
 TILE_SIZE = SCREEN_SIZE // 8
-AI_PLAYER = "blue"
+AI_PLAYER = "black"
 
 PIECE_COLORS = {
-    'red': RED,
-    'blue': BLUE
+    'white': white,
+    'black': black
 }
 
+TILE_COLORS = {
+    "light": (209, 219, 183),
+    "dark" : (128,128,128)
+}
 pygame.init()
 
 screen = pygame.display.set_mode((SCREEN_SIZE, SCREEN_SIZE))
@@ -30,17 +34,22 @@ def get_board_position(x,y):
     return (y // TILE_SIZE, x // TILE_SIZE)
 
 def draw_board():
-    """Draw the checkered game board grid.
+    """Draw the checkewhite game board grid.
     Returns: None."""
     screen.fill(WHITE)
     for row in range(TILE_COUNT):
         for col in range(TILE_COUNT):
-            color = WHITE if (row + col) % 2 == 0 else BLACK
+            color = TILE_COLORS["light"] if (row + col) % 2 == 0 else TILE_COLORS["dark"]
             pygame.draw.rect(screen, color, pygame.Rect(col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE))
 
 def draw_piece(piece, row, col, sprites):
-    """Render a piece at a specific board position, perfectly centered in the tile."""
-    sprite = sprites[piece.piece_type]
+    """Render a piece at a specific board position, perfectly centewhite in the tile."""
+    piece_type = piece.piece_type
+    if piece.get_color()== 'white':
+        piece_type = 'w_' + piece_type
+    else:
+        piece_type = 'b_' + piece_type
+    sprite = sprites[piece_type]
     sprite_width, sprite_height = sprite.get_size()
 
     x_offset = (TILE_SIZE - sprite_width) // 2
@@ -55,15 +64,15 @@ def draw_piece(piece, row, col, sprites):
 def load_sprites(sprite_sheet_path):
     """Load sprites for pieces from a sprite sheet and scale them."""
     sprite_sheet = pygame.image.load(sprite_sheet_path).convert_alpha()
-    SPRITE_ROWS = 3  
-    SPRITE_COLUMNS = 3
+    SPRITE_ROWS = 4  
+    SPRITE_COLUMNS = 4
     sprite_width = sprite_sheet.get_width() // SPRITE_COLUMNS
     sprite_height = sprite_sheet.get_height() // SPRITE_ROWS
 
     scaled_size = (int(TILE_SIZE * 0.75), int(TILE_SIZE * 0.75)) 
 
     sprites = {}
-    piece_names = ["giraffe", "tortoise", "python", "caracal", "meerkat","mandrill","baboon"]
+    piece_names = ["w_giraffe", "b_giraffe", "w_tortoise", "b_tortoise", "w_python", "b_python", "w_caracal", "b_caracal", "w_meerkat", "b_meerkat", "w_mandrill", "b_mandrill", "w_baboon", "b_baboon"]
     index = 0
     for row in range(SPRITE_ROWS):
         for col in range(SPRITE_COLUMNS):

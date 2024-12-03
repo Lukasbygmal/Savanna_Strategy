@@ -2,11 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Literal
 import math
 
-Color = Literal['red', 'blue']
-
-RED = "\033[31m" 
-BLUE = "\033[34m" 
-RESET = "\033[0m"
+Color = Literal['white', 'black']
 
 class Piece:
     piece_type = None
@@ -36,9 +32,6 @@ class Piece:
     
     def get_piece_value(self):
         return self.piece_value
-    
-    def be_taken(self,board):
-        board.grid[self.get_position()] = (0,0)
 
     def render(self, screen, tile_size):
         """
@@ -47,14 +40,6 @@ class Piece:
         if self.sprite:
             x, y = self.__position
             screen.blit(self.sprite, (y * tile_size, x * tile_size))
-
-    @abstractmethod
-    def get_representation(self):
-        pass
-    
-    @abstractmethod
-    def __str__(self) -> str:
-        pass
 
 
 class Mandrill(Piece): 
@@ -70,13 +55,13 @@ class Mandrill(Piece):
         color = self.get_color()
         steps = 1
 
-        if (color =='blue'):
+        if (color =='black'):
             direction = -1
         
         if (not self.evolved):
 
 
-            if (position[0] == 6 and color == "blue" ) or (position[0]==1 and color == "red" ):
+            if (position[0] == 6 and color == "black" ) or (position[0]==1 and color == "white" ):
                 steps = 2
         
             for i in range(1, steps + 1):
@@ -118,23 +103,9 @@ class Mandrill(Piece):
     def will_evolve(self, position):
         """If an mandrill will evolve at a certain position, returns True if evolved else False"""
         if not self.evolved:
-            if (position[0] == 0 and self.get_color() == "blue" ) or (position[0]==7 and self.get_color() == "red" ):
+            if (position[0] == 0 and self.get_color() == "black" ) or (position[0]==7 and self.get_color() == "white" ):
                 return True
         return False
-            
-    def get_representation(self):
-        if not self.evolved:
-            return "M"
-        else:
-            return "B"
-
-
-    def __str__(self) -> str:
-        if (self.get_color()== 'red'):
-            return(f"{RED} M {RESET}")
-        else:
-            return(f"{BLUE} M {RESET}")
-
 
 class Python(Piece):
     piece_type = "python"
@@ -168,18 +139,7 @@ class Python(Piece):
                         if (board.add_eligble_move(r_pos,moves,self.get_color())!=True):
                             r_path = False  
         moves = set(moves)
-        return moves
-    
-    def get_representation(self):
-        return "P"
-
-            
-
-    def __str__(self) -> str:
-        if (self.get_color()== 'red'):
-            return(f"{RED} P {RESET}")
-        else:
-            return(f"{BLUE} P {RESET}")
+        return moves      
 
 
 class Giraffe(Piece):
@@ -207,15 +167,6 @@ class Giraffe(Piece):
         return moves
             
 
-    def get_representation(self):
-        return "G"
-
-    def __str__(self) -> str:
-        if (self.get_color()== 'red'):
-            return(f"{RED} G {RESET}")
-        else:
-            return(f"{BLUE} G {RESET}")
-
 class Meerkat(Piece): 
     piece_type = "meerkat"
     piece_value = 3
@@ -232,14 +183,6 @@ class Meerkat(Piece):
                 
         return moves
             
-    def get_representation(self):
-        return "M"
-
-    def __str__(self) -> str:
-        if (self.get_color()== 'red'):
-            return(f"{RED} M {RESET}")
-        else:
-            return(f"{BLUE} M {RESET}")
         
 class Tortoise(Piece): 
     piece_type = "tortoise"
@@ -255,15 +198,7 @@ class Tortoise(Piece):
             board.add_eligble_move(new_pos,moves,self.get_color())
                 
         return moves
-            
-    def get_representation(self):
-        return "T"
 
-    def __str__(self) -> str:
-        if (self.get_color()== 'red'):
-            return(f"{RED} T {RESET}")
-        else:
-            return(f"{BLUE} T {RESET}")
 
 class Caracal(Piece):
     piece_type = "caracal"
@@ -287,11 +222,4 @@ class Caracal(Piece):
             board.add_eligble_move(new_pos,moves,self.get_color())
         return moves
             
-    def get_representation(self):
-        return "C"
 
-    def __str__(self) -> str:
-        if (self.get_color()== 'red'):
-            return(f"{RED} C {RESET}")
-        else:
-            return(f"{BLUE} C {RESET}")
