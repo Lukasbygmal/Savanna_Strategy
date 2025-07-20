@@ -1,6 +1,6 @@
 import pygame
 from logic import Game
-import time #remove eventually, for testing performance
+import time
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -23,6 +23,7 @@ TILE_COLORS = {
 }
 pygame.init()
 
+clock = pygame.time.Clock()
 screen = pygame.display.set_mode((SCREEN_SIZE, SCREEN_SIZE))
 pygame.display.set_caption("Savanna")
 
@@ -100,7 +101,47 @@ def draw_possible_moves(possible_moves):
     """Highlight tiles for valid moves of the selected piece.
     Returns: None."""
     for move in possible_moves:
-        pygame.draw.rect(screen, HIGHLIGHT, (move[2][1] * TILE_SIZE, move[2][0] * TILE_SIZE, TILE_SIZE, TILE_SIZE))
+        pygame.draw.rect(screen, HIGHLIGHT, (move[2][1] * TILE_SIZE, move[2][0] * TILE_SIZE, TILE_SIZE, TILE_SIZE)) 
+        
+def handle_events(game, selected_piece, possible_moves):
+    """Handle all pygame events and return updated selected_piece, possible_moves and if it the game should continue running"""
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            return None, None, False
+        
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_RIGHT:
+                game.step_forward()
+            elif event.key == pygame.K_LEFT:
+                game.step_back()
+            elif event.key == pygame.K_SPACE:
+                game.step_to_front()
+        
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            if game.viewing_mode:
+                print("You cannot make moves while viewing previous states.")
+                continue
+            
+            x, y = pygame.mouse.get_pos()
+            position = get_board_position(x, y)
+            
+            if selected_piece:
+                for move in possible_moves:
+                    if_capture, if_evolution, pos = move
+                    if pos == position:
+                        game.make_move(selected_piece, move)
+                        break 
+                
+                selected_piece = None
+                possible_moves = []
+            
+            else:
+                piece = game.board.get_piece_at_pos(position)
+                if piece and game.is_current_player_piece(piece):
+                    selected_piece = piece
+                    possible_moves = piece.get_possible_moves(position, game.board)
+    
+    return selected_piece, possible_moves, True
 
 def main():
     sprites = load_sprites("pieces.png")
@@ -139,40 +180,8 @@ def main():
                 running = False  
 
             
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-            
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_RIGHT:
-                    game.step_forward()
-                elif event.key == pygame.K_LEFT:
-                    game.step_back()
-                elif event.key == pygame.K_SPACE:
-                    game.step_to_front()
-            
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                if game.viewing_mode:
-                    print("You cannot make moves while viewing previous states.")
-                    continue
-                x, y = pygame.mouse.get_pos()
-                position = get_board_position(x,y)
-                
-                if selected_piece:
-                    for move in possible_moves:
-                        if_capture, if_evolution, pos = move
-                        if pos == position:
-                            game.make_move(selected_piece, move)
-                            break 
-
-                    selected_piece = None
-                    possible_moves = []
-                
-                else:
-                    piece = game.board.get_piece_at_pos(position)
-                    if piece and game.is_current_player_piece(piece):
-                        selected_piece = piece
-                        possible_moves = piece.get_possible_moves(position, game.board)
+        selected_piece, possible_moves, running = handle_events(game, selected_piece, possible_moves)
+        clock.tick(60)
 
     pygame.quit()
 
