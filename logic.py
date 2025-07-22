@@ -5,7 +5,7 @@ from copy import deepcopy
 from pieces import Piece, Mandrill, Python, Caracal, Tortoise, Giraffe, Meerkat
 
 
-Color = Literal["white", "black"]  # black down, white up
+Color = Literal["White", "Black"]  # black down, white up
 
 
 class Player:
@@ -22,7 +22,7 @@ class Game:
     def __init__(self, sprites):
         self.sprites = sprites
         self.board = Board()
-        self.players = [Player("black"), Player("white")]
+        self.players = [Player("Black"), Player("White")]
         self.current_turn = 0  # 0 for black, 1 for white
         self.board.setup()
         self.winner = None
@@ -124,7 +124,7 @@ class Game:
                 piece = self.board.get_piece_at_pos((row, col))
                 if piece:
                     if isinstance(piece, Mandrill):
-                        if piece.get_color() == "black":
+                        if piece.get_color() == "Black":
                             x = 8 - row
                             score += x * 0.01
                         else:
@@ -132,7 +132,7 @@ class Game:
                             score -= x * 0.01
 
                     piece_score = self.get_value_of_piece(piece)
-                    if piece.get_color() == "black":
+                    if piece.get_color() == "Black":
                         score += piece_score
                     else:
                         score -= piece_score
@@ -153,7 +153,7 @@ class Game:
         best_move = None
         if maximizing_player:
             max_eval = -math.inf
-            for piece, move in self.generate_moves("black"):
+            for piece, move in self.generate_moves("Black"):
                 old_pos = piece.get_position()
                 captuwhite_piece = self.apply_move(piece, move[2], move[1])
                 eval, _ = self.minimax(depth - 1, alpha, beta, False)
@@ -169,7 +169,7 @@ class Game:
             return max_eval, best_move
         else:
             min_eval = math.inf
-            for piece, move in self.generate_moves("white"):
+            for piece, move in self.generate_moves("White"):
                 old_pos = piece.get_position()
                 captuwhite_piece = self.apply_move(piece, move[2], move[1])
                 eval, _ = self.minimax(depth - 1, alpha, beta, True)
@@ -236,28 +236,28 @@ class Board:
         """Initializes the board with pieces in their starting positions.
         Returns: None."""
         for col in range(8):
-            self.grid[1][col] = Mandrill(color="white", initial_position=(1, col))
+            self.grid[1][col] = Mandrill(color="White", initial_position=(1, col))
 
-        self.grid[0][0] = Meerkat(color="white", initial_position=(0, 0))
-        self.grid[0][1] = Python(color="white", initial_position=(0, 1))
-        self.grid[0][2] = Caracal(color="white", initial_position=(0, 2))
-        self.grid[0][3] = Tortoise(color="white", initial_position=(0, 3))
-        self.grid[0][4] = Giraffe(color="white", initial_position=(0, 4))
-        self.grid[0][5] = Caracal(color="white", initial_position=(0, 5))
-        self.grid[0][6] = Python(color="white", initial_position=(0, 6))
-        self.grid[0][7] = Meerkat(color="white", initial_position=(0, 7))
+        self.grid[0][0] = Meerkat(color="White", initial_position=(0, 0))
+        self.grid[0][1] = Python(color="White", initial_position=(0, 1))
+        self.grid[0][2] = Caracal(color="White", initial_position=(0, 2))
+        self.grid[0][3] = Tortoise(color="White", initial_position=(0, 3))
+        self.grid[0][4] = Giraffe(color="White", initial_position=(0, 4))
+        self.grid[0][5] = Caracal(color="White", initial_position=(0, 5))
+        self.grid[0][6] = Python(color="White", initial_position=(0, 6))
+        self.grid[0][7] = Meerkat(color="White", initial_position=(0, 7))
 
         for col in range(8):
-            self.grid[6][col] = Mandrill(color="black", initial_position=(6, col))
+            self.grid[6][col] = Mandrill(color="Black", initial_position=(6, col))
 
-        self.grid[7][0] = Meerkat(color="black", initial_position=(7, 0))
-        self.grid[7][1] = Python(color="black", initial_position=(7, 1))
-        self.grid[7][2] = Caracal(color="black", initial_position=(7, 2))
-        self.grid[7][3] = Giraffe(color="black", initial_position=(7, 3))
-        self.grid[7][4] = Tortoise(color="black", initial_position=(7, 4))
-        self.grid[7][5] = Caracal(color="black", initial_position=(7, 5))
-        self.grid[7][6] = Python(color="black", initial_position=(7, 6))
-        self.grid[7][7] = Meerkat(color="black", initial_position=(7, 7))
+        self.grid[7][0] = Meerkat(color="Black", initial_position=(7, 0))
+        self.grid[7][1] = Python(color="Black", initial_position=(7, 1))
+        self.grid[7][2] = Caracal(color="Black", initial_position=(7, 2))
+        self.grid[7][3] = Giraffe(color="Black", initial_position=(7, 3))
+        self.grid[7][4] = Tortoise(color="Black", initial_position=(7, 4))
+        self.grid[7][5] = Caracal(color="Black", initial_position=(7, 5))
+        self.grid[7][6] = Python(color="Black", initial_position=(7, 6))
+        self.grid[7][7] = Meerkat(color="Black", initial_position=(7, 7))
 
     def get_board_state(self):
         """Gets the current state of the board.

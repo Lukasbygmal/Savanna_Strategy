@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Literal
 import math
 
-Color = Literal["white", "black"]
+Color = Literal["White", "Black"]
 
 
 class Piece:
@@ -57,13 +57,13 @@ class Mandrill(Piece):
         color = self.get_color()
         steps = 1
 
-        if color == "black":
+        if color == "Black":
             direction = -1
 
         if not self.evolved:
 
-            if (position[0] == 6 and color == "black") or (
-                position[0] == 1 and color == "white"
+            if (position[0] == 6 and color == "Black") or (
+                position[0] == 1 and color == "White"
             ):
                 steps = 2
 
@@ -106,8 +106,8 @@ class Mandrill(Piece):
     def will_evolve(self, position):
         """If an mandrill will evolve at a certain position, returns True if evolved else False"""
         if not self.evolved:
-            if (position[0] == 0 and self.get_color() == "black") or (
-                position[0] == 7 and self.get_color() == "white"
+            if (position[0] == 0 and self.get_color() == "Black") or (
+                position[0] == 7 and self.get_color() == "White"
             ):
                 return True
         return False

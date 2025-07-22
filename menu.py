@@ -385,11 +385,11 @@ class GameMenu:
 
     def draw_game_over(self, screen, winner):
         """
-        Render the game over screen.
+        Render the game over screen with semi-transparent overlay.
 
         Args:
             screen: pygame surface to draw on
-            winner: winning player name or None
+            winner: the winning player as string
 
         Returns:
             Button: back to menu button for event handling
@@ -398,32 +398,20 @@ class GameMenu:
         overlay.fill(colors.OVERLAY)
         screen.blit(overlay, (0, 0))
 
-        card_width, card_height = 400, 250
-        card_rect = pygame.Rect(
-            self.screen_size // 2 - card_width // 2,
-            self.screen_size // 2 - card_height // 2,
-            card_width,
-            card_height,
-        )
+        center_x = self.screen_size // 2
+        center_y = self.screen_size // 2
+        text_color = colors.BLACK
+        if winner:
+            winner_text = f"{winner} Wins!"
+            
+        else:
+            winner_text = "Draw!"
 
-        draw_rounded_rect(screen, colors.GRAY, card_rect, 20)
-
-        winner_text = f"{winner.capitalize()} Wins!" if winner else "Game Over!"
-        text_surface = self.font_medium.render(
-            winner_text, True, colors.LIGHT_GRAY
-        )
-        text_rect = text_surface.get_rect(
-            center=(card_rect.centerx, card_rect.centery - 30)
-        )
+        text_surface = self.title_font.render(winner_text, True, text_color)
+        text_rect = text_surface.get_rect(center=(center_x, center_y - 50))
         screen.blit(text_surface, text_rect)
 
-        back_button = Button(
-            card_rect.centerx - 100,
-            card_rect.centery + 30,
-            200,
-            50,
-            "Menu",
-        )
+        back_button = Button(center_x - 100, center_y + 50, 200, 60, "Menu")
         back_button.draw(screen)
         return back_button
 
@@ -452,8 +440,8 @@ class GameMenu:
         Returns:
             dict: dictionary containing player settings
         """
-        player_color = "black" if self.color_toggle.state else "white"
-        ai_color = "white" if self.color_toggle.state else "black"
+        player_color = "Black" if self.color_toggle.state else "White"
+        ai_color = "White" if self.color_toggle.state else "Black"
         return {
             "player_color": player_color,
             "ai_color": ai_color,

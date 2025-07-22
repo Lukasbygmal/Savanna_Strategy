@@ -44,7 +44,7 @@ def draw_board():
 def draw_piece(piece, row, col, sprites):
     """Render a piece at a specific board position, perfectly centered in the tile."""
     piece_type = piece.piece_type
-    if piece.get_color() == "white":
+    if piece.get_color() == "White":
         piece_type = "w_" + piece_type
     else:
         piece_type = "b_" + piece_type
