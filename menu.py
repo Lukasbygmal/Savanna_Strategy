@@ -1,5 +1,4 @@
 import pygame
-import math
 import colors
 
 
@@ -164,7 +163,10 @@ class Slider:
                 self.track_x, self.track_y, active_width, self.TRACK_HEIGHT
             )
             pygame.draw.rect(
-                screen, colors.SAGE_GREEN, active_rect, border_radius=self.TRACK_HEIGHT // 2
+                screen,
+                colors.SAGE_GREEN,
+                active_rect,
+                border_radius=self.TRACK_HEIGHT // 2,
             )
 
         handle_color = colors.HOVER_SAGE if self.dragging else colors.SAGE_GREEN
@@ -209,61 +211,75 @@ class Slider:
 class Toggle:
     """Toggle switch widget with smooth animations."""
 
-    def __init__(
-        self, x, y, width, height, option1, option2, initial_state=False
-    ):
-        """
-        Initialize a toggle switch.
+    FONT_SIZE = 28
+    OPTION_FONT_SIZE = 24
+    SWITCH_WIDTH = 80
+    SWITCH_HEIGHT = 36
+    HANDLE_SIZE = 28
+    HANDLE_PADDING = 4
+    TEXT_SPACING = 10
+    ANIMATION_SPEED = 8
+    BORDER_RADIUS = 8
+    HANDLE_RADIUS = 6
+
+    def __init__(self, x, y, width, height, option1, option2, initial_state=False):
+        """Initialize a toggle switch.
 
         Args:
-            x, y: toggle position
-            width, height: toggle dimensions
-            option1: text for False state
-            option2: text for True state
-            initial_state: starting state
+            x: X position of the toggle
+            y: Y position of the toggle
+            width: Width of the toggle area
+            height: Height of the toggle area
+            option1: Text for False state
+            option2: Text for True state
+            initial_state: Starting state (default: False)
         """
         self.rect = pygame.Rect(x, y, width, height)
         self.option1 = option1
         self.option2 = option2
         self.state = initial_state
-        self.font = pygame.font.Font(None, 28)
-        self.option_font = pygame.font.Font(None, 24)
 
-        self.switch_width = 80
-        self.switch_height = 36
-        self.switch_x = x + width // 2 - self.switch_width // 2
-        self.switch_y = y + height - self.switch_height - 10
+        self.font = pygame.font.Font(None, self.FONT_SIZE)
+        self.option_font = pygame.font.Font(None, self.OPTION_FONT_SIZE)
+
+        self.switch_x = x + width // 2 - self.SWITCH_WIDTH // 2
+        self.switch_y = y + height - self.SWITCH_HEIGHT - 10
         self.switch_rect = pygame.Rect(
-            self.switch_x, self.switch_y, self.switch_width, self.switch_height
+            self.switch_x, self.switch_y, self.SWITCH_WIDTH, self.SWITCH_HEIGHT
         )
 
-        self.handle_size = 28
         self.animation_progress = 1.0 if initial_state else 0.0
         self.target_progress = 1.0 if initial_state else 0.0
 
     def update_animation(self, dt=0.016):
-        """
-        Update animation progress.
+        """Update animation progress.
 
         Args:
-            dt: delta time for smooth animation
+            dt: Delta time for smooth animation
         """
         if abs(self.animation_progress - self.target_progress) > 0.01:
             self.animation_progress += (
-                (self.target_progress - self.animation_progress) * 8 * dt
+                (self.target_progress - self.animation_progress)
+                * self.ANIMATION_SPEED
+                * dt
             )
 
     def draw(self, screen):
-        """Render the toggle to the screen."""
+        """Draw the toggle on the given screen surface.
 
+        Args:
+            screen: Pygame surface to draw on
+        """
         option1_text = self.option_font.render(self.option1, True, colors.BLACK)
         option2_text = self.option_font.render(self.option2, True, colors.BLACK)
 
         option1_rect = option1_text.get_rect(
-            centery=self.switch_rect.centery, right=self.switch_rect.left - 10
+            centery=self.switch_rect.centery,
+            right=self.switch_rect.left - self.TEXT_SPACING,
         )
         option2_rect = option2_text.get_rect(
-            centery=self.switch_rect.centery, left=self.switch_rect.right + 10
+            centery=self.switch_rect.centery,
+            left=self.switch_rect.right + self.TEXT_SPACING,
         )
 
         screen.blit(option1_text, option1_rect)
@@ -271,51 +287,58 @@ class Toggle:
 
         self.update_animation()
 
-        bg_color = self._interpolate_color(colors.WHITE, colors.BLACK, self.animation_progress)
-        draw_rounded_rect(screen, bg_color, self.switch_rect, 8)
+        bg_color = self._interpolate_color(
+            colors.WHITE, colors.BLACK, self.animation_progress
+        )
+        draw_rounded_rect(screen, bg_color, self.switch_rect, self.BORDER_RADIUS)
 
-        handle_travel = self.switch_width - self.handle_size - 8
-        handle_x = self.switch_rect.left + 4 + handle_travel * self.animation_progress
+        handle_travel = self.SWITCH_WIDTH - self.HANDLE_SIZE - (self.HANDLE_PADDING * 2)
+        handle_x = (
+            self.switch_rect.left
+            + self.HANDLE_PADDING
+            + handle_travel * self.animation_progress
+        )
         handle_rect = pygame.Rect(
             int(handle_x),
-            self.switch_rect.centery - self.handle_size // 2,
-            self.handle_size,
-            self.handle_size,
+            self.switch_rect.centery - self.HANDLE_SIZE // 2,
+            self.HANDLE_SIZE,
+            self.HANDLE_SIZE,
         )
 
-        draw_rounded_rect(screen, colors.SAGE_GREEN, handle_rect, 6)
+        draw_rounded_rect(screen, colors.SAGE_GREEN, handle_rect, self.HANDLE_RADIUS)
 
     def _interpolate_color(self, color1, color2, t):
-        """
-        Interpolate between two colors.
+        """Interpolate between two colors.
 
         Args:
-            color1: starting RGB color
-            color2: ending RGB color
-            t: interpolation factor (0-1)
+            color1: Starting RGB color
+            color2: Ending RGB color
+            t: Interpolation factor (0-1)
 
         Returns:
-            tuple: interpolated RGB color
+            tuple: Interpolated RGB color
         """
         return tuple(int(color1[i] + (color2[i] - color1[i]) * t) for i in range(3))
 
     def handle_event(self, event):
-        """
-        Handle pygame events for toggle interaction.
+        """Handle pygame events for toggle interaction.
 
         Args:
-            event: pygame event
+            event: Pygame event object
 
         Returns:
             bool: True if toggle was clicked, False otherwise
         """
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if self.switch_rect.collidepoint(event.pos) or pygame.Rect(
+            click_area = pygame.Rect(
                 self.rect.left,
                 self.switch_y - 10,
                 self.rect.width,
-                self.switch_height + 20,
-            ).collidepoint(event.pos):
+                self.SWITCH_HEIGHT + 20,
+            )
+            if self.switch_rect.collidepoint(event.pos) or click_area.collidepoint(
+                event.pos
+            ):
                 self.state = not self.state
                 self.target_progress = 1.0 if self.state else 0.0
                 return True
@@ -338,7 +361,7 @@ class GameMenu:
 
         center_x = screen_size // 2
 
-        self.depth_slider = Slider(center_x- 100, 450, 1, 5, 4, "Depth ")
+        self.depth_slider = Slider(center_x - 100, 450, 1, 5, 4, "Depth ")
         self.color_toggle = Toggle(
             center_x - 150, 340, 300, 80, "White", "Black", False
         )
@@ -372,7 +395,7 @@ class GameMenu:
             Button: back to menu button for event handling
         """
         overlay = pygame.Surface((self.screen_size, self.screen_size), pygame.SRCALPHA)
-        overlay.fill((0, 0, 0, 120))
+        overlay.fill(colors.OVERLAY)
         screen.blit(overlay, (0, 0))
 
         card_width, card_height = 400, 250
@@ -386,7 +409,9 @@ class GameMenu:
         draw_rounded_rect(screen, colors.GRAY, card_rect, 20)
 
         winner_text = f"{winner.capitalize()} Wins!" if winner else "Game Over!"
-        text_surface = self.font_medium.render(winner_text, True, colors.colors.LIGHT_colors.GRAY)
+        text_surface = self.font_medium.render(
+            winner_text, True, colors.LIGHT_GRAY
+        )
         text_rect = text_surface.get_rect(
             center=(card_rect.centerx, card_rect.centery - 30)
         )
@@ -427,8 +452,8 @@ class GameMenu:
         Returns:
             dict: dictionary containing player settings
         """
-        player_color = "black" if self.color_toggle.state else "colors.GRAY"
-        ai_color = "colors.GRAY" if self.color_toggle.state else "black"
+        player_color = "black" if self.color_toggle.state else "white"
+        ai_color = "white" if self.color_toggle.state else "black"
         return {
             "player_color": player_color,
             "ai_color": ai_color,
