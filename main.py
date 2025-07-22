@@ -30,7 +30,9 @@ def draw_board():
     for row in range(TILE_COUNT):
         for col in range(TILE_COUNT):
             color = (
-                colors.TILE_COLORS["light"] if (row + col) % 2 == 0 else colors.TILE_COLORS["dark"]
+                colors.TILE_COLORS["light"]
+                if (row + col) % 2 == 0
+                else colors.TILE_COLORS["dark"]
             )
             pygame.draw.rect(
                 screen,
@@ -165,6 +167,87 @@ def handle_game_events(game, selected_piece, possible_moves, menu):
     return selected_piece, possible_moves, GameState.PLAYING, False
 
 
+def handle_menu_state(menu, screen, sprites):
+    menu.draw_menu(screen)
+    
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            return None, GameState.MENU, True
+        
+        action = menu.handle_menu_events(event)
+        if action == "play":
+            settings = menu.get_settings()
+            game = Game(sprites)
+            return (game, settings), GameState.PLAYING, False
+    
+    return None, GameState.MENU, False
+
+
+def handle_playing_state(
+    game, selected_piece, possible_moves, settings, sprites, screen, menu
+):
+    draw_board()
+    draw_pieces(game.board, sprites)
+
+    if possible_moves:
+        draw_possible_moves(possible_moves)
+
+    if game.winner:
+        return selected_piece, possible_moves, GameState.GAME_OVER, False
+
+    if (
+        game.get_current_player().get_color() == settings["ai_color"]
+        and not game.viewing_mode
+    ):
+        pygame.display.flip()
+
+        game.step_to_front()
+        start_time = time.time()
+        best_score, best_move = game.minimax(
+            settings["ai_depth"], -float("inf"), float("inf"), True
+        )
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        print(f"Function runtime: {elapsed_time:.4f} seconds")
+
+        if best_move:
+            piece_to_move, move = best_move
+            print("-------Piece to move:", piece_to_move)
+            print("Move", move)
+            game.make_move(piece_to_move, move)
+        else:
+            print("No valid moves available for AI player.")
+            return selected_piece, possible_moves, GameState.GAME_OVER, False
+    else:
+        selected_piece, possible_moves, game_state, should_quit = handle_game_events(
+            game, selected_piece, possible_moves, menu
+        )
+        if should_quit:
+            return selected_piece, possible_moves, game_state, True
+
+        if game_state != GameState.PLAYING:
+            return selected_piece, possible_moves, game_state, False
+        
+        pygame.display.flip()
+
+    return selected_piece, possible_moves, GameState.PLAYING, False
+
+
+def handle_game_over_state(game, menu, sprites, screen):
+    draw_board()
+    draw_pieces(game.board, sprites)
+
+    back_button = menu.draw_game_over(screen, game.winner)
+
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            return GameState.GAME_OVER, True
+        elif back_button.handle_event(event):
+            return GameState.MENU, False
+
+    return GameState.GAME_OVER, False
+
+
 def main():
     sprites = load_sprites("pieces.png")
     menu = GameMenu(SCREEN_SIZE)
@@ -178,72 +261,40 @@ def main():
     running = True
     while running:
         if game_state == GameState.MENU:
-            menu.draw_menu(screen)
-
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
-
-                action = menu.handle_menu_events(event)
-                if action == "play":
-                    settings = menu.get_settings()
-                    game = Game(sprites)
-                    selected_piece = None
-                    possible_moves = []
-                    game_state = GameState.PLAYING
+            result, game_state, should_quit = handle_menu_state(menu, screen, sprites)
+            if should_quit:
+                running = False
+            elif result:
+                game, settings = result
+                selected_piece = None
+                possible_moves = []
 
         elif game_state == GameState.PLAYING:
-            draw_board()
-            draw_pieces(game.board, sprites)
-
-            if possible_moves:
-                draw_possible_moves(possible_moves)
-
-            if game.winner:
-                game_state = GameState.GAME_OVER
-
-            elif (
-                game.get_current_player().get_color() == settings["ai_color"]
-                and not game.viewing_mode
-            ):
-                game.step_to_front()
-                start_time = time.time()
-                best_score, best_move = game.minimax(
-                    settings["ai_depth"], -float("inf"), float("inf"), True
+            selected_piece, possible_moves, game_state, should_quit = (
+                handle_playing_state(
+                    game,
+                    selected_piece,
+                    possible_moves,
+                    settings,
+                    sprites,
+                    screen,
+                    menu,
                 )
-                end_time = time.time()
-                elapsed_time = end_time - start_time
-                print(f"Function runtime: {elapsed_time:.4f} seconds")
-
-                if best_move:
-                    piece_to_move, move = best_move
-                    print("-------Piece to move:", piece_to_move)
-                    print("Move", move)
-                    game.make_move(piece_to_move, move)
-                else:
-                    print("No valid moves available for AI player.")
-                    game_state = GameState.GAME_OVER
-            else:
-                selected_piece, possible_moves, game_state, should_quit = (
-                    handle_game_events(game, selected_piece, possible_moves, menu)
-                )
-                if should_quit:
-                    running = False
+            )
+            if should_quit:
+                running = False
 
         elif game_state == GameState.GAME_OVER:
-            draw_board()
-            draw_pieces(game.board, sprites)
+            game_state, should_quit = handle_game_over_state(
+                game, menu, sprites, screen
+            )
+            if should_quit:
+                running = False
 
-            back_button = menu.draw_game_over(screen, game.winner)
+        if game_state != GameState.PLAYING:
+            pygame.display.flip()
 
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
-                elif back_button.handle_event(event):
-                    game_state = GameState.MENU
-
-        pygame.display.flip()
-        clock.tick(60)
+        clock.tick(120)
 
     pygame.quit()
 
