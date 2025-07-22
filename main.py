@@ -2,24 +2,11 @@ import pygame
 from logic import Game
 from menu import GameMenu, GameState
 import time
+import colors
 
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-GRAY = (128, 128, 128)
-
-white = (255, 0, 0)
-black = (0, 0, 255)
-HIGHLIGHT = (173, 216, 230)
 SCREEN_SIZE = 640
 TILE_COUNT = 8
 TILE_SIZE = SCREEN_SIZE // 8
-
-PIECE_COLORS = {
-    "white": white,
-    "black": black,
-}  # this is never used?! but will keep here until refactor colors! TODO
-
-TILE_COLORS = {"light": (209, 219, 183), "dark": (128, 128, 128)}
 
 pygame.init()
 
@@ -39,11 +26,11 @@ def get_board_position(x, y):
 def draw_board():
     """Draw the checker game board grid.
     Returns: None."""
-    screen.fill(WHITE)
+    screen.fill(colors.WHITE)
     for row in range(TILE_COUNT):
         for col in range(TILE_COUNT):
             color = (
-                TILE_COLORS["light"] if (row + col) % 2 == 0 else TILE_COLORS["dark"]
+                colors.TILE_COLORS["light"] if (row + col) % 2 == 0 else colors.TILE_COLORS["dark"]
             )
             pygame.draw.rect(
                 screen,
@@ -132,7 +119,7 @@ def draw_possible_moves(possible_moves):
     for move in possible_moves:
         pygame.draw.rect(
             screen,
-            HIGHLIGHT,
+            colors.HIGHLIGHT,
             (move[2][1] * TILE_SIZE, move[2][0] * TILE_SIZE, TILE_SIZE, TILE_SIZE),
         )
 

@@ -1,13 +1,6 @@
 import pygame
 import math
-
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-GRAY = (200, 200, 200)
-LIGHT_GRAY = (220, 220, 220)
-SAGE_GREEN = (120, 140, 100)
-HOVER_SAGE = (140, 160, 120)
-BACKGROUND = (209, 219, 183)
+import colors
 
 
 class GameState:
@@ -49,9 +42,9 @@ class Button:
         width,
         height,
         text,
-        color=SAGE_GREEN,
-        hover_color=HOVER_SAGE,
-        text_color=BLACK,
+        color=colors.SAGE_GREEN,
+        hover_color=colors.HOVER_SAGE,
+        text_color=colors.BLACK,
     ):
         """
         Initialize a button.
@@ -155,14 +148,14 @@ class Slider:
         Args:
             screen: Pygame surface to draw on
         """
-        text = self.font.render(f"{self.label}: {self.val}", True, BLACK)
+        text = self.font.render(f"{self.label}: {self.val}", True, colors.BLACK)
         screen.blit(text, (self.x + 60, self.y))
 
         track_rect = pygame.Rect(
             self.track_x, self.track_y, self.TRACK_LENGTH, self.TRACK_HEIGHT
         )
         pygame.draw.rect(
-            screen, LIGHT_GRAY, track_rect, border_radius=self.TRACK_HEIGHT // 2
+            screen, colors.WHITE, track_rect, border_radius=self.TRACK_HEIGHT // 2
         )
 
         active_width = self.handle_x - self.track_x
@@ -171,10 +164,10 @@ class Slider:
                 self.track_x, self.track_y, active_width, self.TRACK_HEIGHT
             )
             pygame.draw.rect(
-                screen, SAGE_GREEN, active_rect, border_radius=self.TRACK_HEIGHT // 2
+                screen, colors.SAGE_GREEN, active_rect, border_radius=self.TRACK_HEIGHT // 2
             )
 
-        handle_color = HOVER_SAGE if self.dragging else SAGE_GREEN
+        handle_color = colors.HOVER_SAGE if self.dragging else colors.SAGE_GREEN
         handle_rect = pygame.Rect(
             int(self.handle_x - self.HANDLE_SIZE // 2),
             self.track_y - (self.HANDLE_SIZE - self.TRACK_HEIGHT) // 2,
@@ -263,8 +256,8 @@ class Toggle:
     def draw(self, screen):
         """Render the toggle to the screen."""
 
-        option1_text = self.option_font.render(self.option1, True, BLACK)
-        option2_text = self.option_font.render(self.option2, True, BLACK)
+        option1_text = self.option_font.render(self.option1, True, colors.BLACK)
+        option2_text = self.option_font.render(self.option2, True, colors.BLACK)
 
         option1_rect = option1_text.get_rect(
             centery=self.switch_rect.centery, right=self.switch_rect.left - 10
@@ -278,7 +271,7 @@ class Toggle:
 
         self.update_animation()
 
-        bg_color = self._interpolate_color(WHITE, BLACK, self.animation_progress)
+        bg_color = self._interpolate_color(colors.WHITE, colors.BLACK, self.animation_progress)
         draw_rounded_rect(screen, bg_color, self.switch_rect, 8)
 
         handle_travel = self.switch_width - self.handle_size - 8
@@ -290,7 +283,7 @@ class Toggle:
             self.handle_size,
         )
 
-        draw_rounded_rect(screen, SAGE_GREEN, handle_rect, 6)
+        draw_rounded_rect(screen, colors.SAGE_GREEN, handle_rect, 6)
 
     def _interpolate_color(self, color1, color2, t):
         """
@@ -351,14 +344,14 @@ class GameMenu:
         )
         self.play_button = Button(center_x - 90, 250, 180, 60, "PLAY")
         self.back_button = Button(
-            30, 30, 120, 45, "Menu", color=SAGE_GREEN, text_color=GRAY
+            30, 30, 120, 45, "Menu", color=colors.SAGE_GREEN, text_color=colors.GRAY
         )
 
     def draw_menu(self, screen):
         """Render the main menu screen."""
-        screen.fill(BACKGROUND)
+        screen.fill(colors.BACKGROUND)
 
-        title_text = self.title_font.render("SAVANNA STRATEGY", True, BLACK)
+        title_text = self.title_font.render("SAVANNA STRATEGY", True, colors.BLACK)
         title_rect = title_text.get_rect(center=(self.screen_size // 2, 80))
 
         screen.blit(title_text, title_rect)
@@ -390,10 +383,10 @@ class GameMenu:
             card_height,
         )
 
-        draw_rounded_rect(screen, GRAY, card_rect, 20)
+        draw_rounded_rect(screen, colors.GRAY, card_rect, 20)
 
         winner_text = f"{winner.capitalize()} Wins!" if winner else "Game Over!"
-        text_surface = self.font_medium.render(winner_text, True, LIGHT_GRAY)
+        text_surface = self.font_medium.render(winner_text, True, colors.colors.LIGHT_colors.GRAY)
         text_rect = text_surface.get_rect(
             center=(card_rect.centerx, card_rect.centery - 30)
         )
@@ -434,8 +427,8 @@ class GameMenu:
         Returns:
             dict: dictionary containing player settings
         """
-        player_color = "black" if self.color_toggle.state else "GRAY"
-        ai_color = "GRAY" if self.color_toggle.state else "black"
+        player_color = "black" if self.color_toggle.state else "colors.GRAY"
+        ai_color = "colors.GRAY" if self.color_toggle.state else "black"
         return {
             "player_color": player_color,
             "ai_color": ai_color,
