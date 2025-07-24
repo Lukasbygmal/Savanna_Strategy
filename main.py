@@ -203,8 +203,13 @@ def handle_playing_state(
 
         game.step_to_front()
         start_time = time.time()
+        if game.get_current_player().get_color() == "Black":
+            maximizing_player = True
+        else:
+            maximizing_player = False
+        
         best_score, best_move = game.minimax(
-            settings["ai_depth"], -float("inf"), float("inf"), True
+            settings["ai_depth"], -float("inf"), float("inf"), maximizing_player
         )
         end_time = time.time()
         elapsed_time = end_time - start_time

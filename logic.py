@@ -23,7 +23,7 @@ class Game:
         self.sprites = sprites
         self.board = Board()
         self.players = [Player("Black"), Player("White")]
-        self.current_turn = 0  # 0 for black, 1 for white
+        self.current_turn = 1  # 0 for black, 1 for white
         self.board.setup()
         self.winner = None
         self.history = [deepcopy(self.board.get_board_state())]
