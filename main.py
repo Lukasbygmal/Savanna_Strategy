@@ -169,17 +169,17 @@ def handle_game_events(game, selected_piece, possible_moves, menu):
 
 def handle_menu_state(menu, screen, sprites):
     menu.draw_menu(screen)
-    
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             return None, GameState.MENU, True
-        
+
         action = menu.handle_menu_events(event)
         if action == "play":
             settings = menu.get_settings()
             game = Game(sprites)
             return (game, settings), GameState.PLAYING, False
-    
+
     return None, GameState.MENU, False
 
 
@@ -207,7 +207,7 @@ def handle_playing_state(
             maximizing_player = True
         else:
             maximizing_player = False
-        
+
         best_score, best_move = game.minimax(
             settings["ai_depth"], -float("inf"), float("inf"), maximizing_player
         )
@@ -232,22 +232,25 @@ def handle_playing_state(
 
         if game_state != GameState.PLAYING:
             return selected_piece, possible_moves, game_state, False
-        
+
         pygame.display.flip()
 
     return selected_piece, possible_moves, GameState.PLAYING, False
 
 
 def handle_game_over_state(game, menu, sprites, screen):
+    """Handle the game over state with proper event handling."""
     draw_board()
     draw_pieces(game.board, sprites)
-
-    back_button = menu.draw_game_over(screen, game.winner)
+    menu.draw_game_over(screen, game.winner)
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             return GameState.GAME_OVER, True
-        elif back_button.handle_event(event):
+
+        # Use the new event handler method
+        action = menu.handle_game_over_events(event)
+        if action == "menu":
             return GameState.MENU, False
 
     return GameState.GAME_OVER, False

@@ -366,9 +366,7 @@ class GameMenu:
             center_x - 150, 340, 300, 80, "White", "Black", False
         )
         self.play_button = Button(center_x - 90, 250, 180, 60, "PLAY")
-        self.back_button = Button(
-            30, 30, 120, 45, "Menu", color=colors.SAGE_GREEN, text_color=colors.GRAY
-        )
+        self.menu_button = Button(center_x - 100, center_x + 50, 200, 60, "Menu")
 
     def draw_menu(self, screen):
         """Render the main menu screen."""
@@ -390,9 +388,6 @@ class GameMenu:
         Args:
             screen: pygame surface to draw on
             winner: the winning player as string
-
-        Returns:
-            Button: back to menu button for event handling
         """
         overlay = pygame.Surface((self.screen_size, self.screen_size), pygame.SRCALPHA)
         overlay.fill(colors.OVERLAY)
@@ -401,9 +396,9 @@ class GameMenu:
         center_x = self.screen_size // 2
         center_y = self.screen_size // 2
         text_color = colors.BLACK
+
         if winner:
             winner_text = f"{winner} Wins!"
-            
         else:
             winner_text = "Draw!"
 
@@ -411,9 +406,7 @@ class GameMenu:
         text_rect = text_surface.get_rect(center=(center_x, center_y - 50))
         screen.blit(text_surface, text_rect)
 
-        back_button = Button(center_x - 100, center_y + 50, 200, 60, "Menu")
-        back_button.draw(screen)
-        return back_button
+        self.menu_button.draw(screen)
 
     def handle_menu_events(self, event):
         """
@@ -431,6 +424,20 @@ class GameMenu:
         self.depth_slider.handle_event(event)
         self.color_toggle.handle_event(event)
 
+        return None
+
+    def handle_game_over_events(self, event):
+        """
+        Handle game over screen events.
+
+        Args:
+            event: pygame event
+
+        Returns:
+            str or None: action string or None if no action
+        """
+        if self.menu_button.handle_event(event):
+            return "menu"
         return None
 
     def get_settings(self):
