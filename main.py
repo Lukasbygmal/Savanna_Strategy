@@ -142,7 +142,6 @@ def handle_game_events(game, selected_piece, possible_moves, menu):
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if game.viewing_mode:
-                print("You cannot make moves while viewing previous states.")
                 continue
 
             x, y = pygame.mouse.get_pos()
@@ -213,15 +212,11 @@ def handle_playing_state(
         )
         end_time = time.time()
         elapsed_time = end_time - start_time
-        print(f"Function runtime: {elapsed_time:.4f} seconds")
 
         if best_move:
             piece_to_move, move = best_move
-            print("-------Piece to move:", piece_to_move)
-            print("Move", move)
             game.make_move(piece_to_move, move)
         else:
-            print("No valid moves available for AI player.")
             return selected_piece, possible_moves, GameState.GAME_OVER, False
     else:
         selected_piece, possible_moves, game_state, should_quit = handle_game_events(
