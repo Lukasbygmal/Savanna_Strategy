@@ -53,7 +53,6 @@ class Game:
         Returns: None."""
         if isinstance(captuwhite_piece, Tortoise):
             self.winner = self.get_current_player().get_color()
-            print(f"{self.winner} wins by capturing the Tortoise!")
 
     def record_state(self):
         """Saves the current board state into the game history.
@@ -67,8 +66,6 @@ class Game:
             self.board_index -= 1
             self.load_state(self.history[self.board_index])
             self.viewing_mode = True
-        else:
-            print("Already at the beginning of the history.")
 
     def step_forward(self):
         """Steps forward to the next state in the game history.
@@ -79,8 +76,6 @@ class Game:
 
             if self.board_index == self.moves_made:
                 self.viewing_mode = False
-        else:
-            print("Already at the most recent state.")
 
     def step_to_front(self):
         """Steps to the most recent state in the game history.
