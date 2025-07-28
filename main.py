@@ -12,7 +12,9 @@ pygame.init()
 
 clock = pygame.time.Clock()
 screen = pygame.display.set_mode((SCREEN_SIZE, SCREEN_SIZE))
-pygame.display.set_caption("Savanna")
+pygame.display.set_caption("Savanna Strategy")
+icon = pygame.image.load("icon.png")
+pygame.display.set_icon(icon)
 
 font = pygame.font.SysFont(None, 44)
 
